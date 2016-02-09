@@ -190,8 +190,6 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>amd_ags_x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\AGS_LIB\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\lib\VS2012\Win32\DLL_Debug\GPUOpen_AOFX_x86d.lib</ImportLibrary>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
@@ -215,8 +213,6 @@ xcopy "..\lib\VS2012\Win32\DLL_Debug\$(TargetName).lib"  "..\lib" /H /R /Y &gt; 
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>amd_ags_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\AGS_LIB\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\lib\VS2012\x64\DLL_Debug\GPUOpen_AOFX_x64d.lib</ImportLibrary>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
@@ -245,8 +241,6 @@ xcopy "..\lib\VS2012\x64\DLL_Debug\$(TargetName).lib"  "..\lib" /H /R /Y &gt; nu
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>amd_ags_x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\AGS_LIB\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\lib\VS2012\Win32\DLL_Release\GPUOpen_AOFX_x86.lib</ImportLibrary>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
@@ -275,8 +269,6 @@ xcopy "..\lib\VS2012\Win32\DLL_Release\$(TargetName).lib"  "..\lib" /H /R /Y &gt
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>amd_ags_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\AGS_LIB\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\lib\VS2012\x64\DLL_Release\GPUOpen_AOFX_x64.lib</ImportLibrary>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
@@ -393,7 +385,7 @@ xcopy "..\lib\VS2012\x64\DLL_Release\$(TargetName).lib"  "..\lib" /H /R /Y &gt; 
     <None Include="..\src\Shaders\BilateralFilter.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AMD_LIB\build\AMD_LIB_2012.vcxproj">
+    <ProjectReference Include="..\..\AMD_LIB\build\AMD_LIB_Minimal_2012.vcxproj">
       <Project>{0D2AEA47-7909-69E3-8221-F4B9EE7FCF44}</Project>
     </ProjectReference>
   </ItemGroup>

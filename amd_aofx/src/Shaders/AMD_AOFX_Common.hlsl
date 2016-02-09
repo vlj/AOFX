@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#ifndef _AMD_AOFX_COMMON_HLSL_
-#define _AMD_AOFX_COMMON_HLSL_
+#ifndef AMD_AOFX_COMMON_HLSL
+#define AMD_AOFX_COMMON_HLSL
 
 //======================================================================================================
 // AO parameter constants
@@ -334,4 +334,4 @@ float loadCameraSpaceDepthT2D( float2 uv, float cameraQ, float cameraZNearXQ )
   return camera_z;
 }
 
-#endif // _AMD_AO_COMMON_HLSL_
+#endif // AMD_AOFX_COMMON_HLSL

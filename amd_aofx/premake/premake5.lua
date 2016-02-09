@@ -19,11 +19,11 @@ workspace ("AMD_" .. _AMD_LIBRARY_NAME)
       system "Windows"
       architecture "x64"
 
-externalproject "AMD_LIB"
+externalproject "AMD_LIB_Minimal"
    kind "StaticLib"
    language "C++"
    location "../../AMD_LIB/build"
-   filename ("AMD_LIB" .. _AMD_VS_SUFFIX)
+   filename ("AMD_LIB_Minimal" .. _AMD_VS_SUFFIX)
    uuid "0D2AEA47-7909-69E3-8221-F4B9EE7FCF44"
    configmap {
       ["DLL_Debug"] = "Debug",
@@ -45,8 +45,7 @@ project ("AMD_" .. _AMD_LIBRARY_NAME)
 
    files { "../inc/**.h", "../src/**.h", "../src/**.cpp", "../src/Shaders/**.hlsl" }
    includedirs { "../inc", "../../AMD_LIB/inc" }
-   links { "AMD_LIB" }
-   libdirs { "../../AGS_LIB/lib" }
+   links { "AMD_LIB_Minimal" }
 
    filter "configurations:DLL_*"
       kind "SharedLib"
@@ -72,8 +71,6 @@ project ("AMD_" .. _AMD_LIBRARY_NAME)
 
    filter "platforms:Win32"
       targetname "%{_AMD_LIBRARY_PREFIX}%{_AMD_LIBRARY_NAME}_x86"
-      links { "amd_ags_x86" }
 
    filter "platforms:x64"
       targetname "%{_AMD_LIBRARY_PREFIX}%{_AMD_LIBRARY_NAME}_x64"
-      links { "amd_ags_x64" }

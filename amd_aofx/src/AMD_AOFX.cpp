@@ -40,6 +40,25 @@ namespace AMD
 //-------------------------------------------------------------------------------------------------
 // 
 //-------------------------------------------------------------------------------------------------
+AOFX_RETURN_CODE AMD_AOFX_DLL_API AOFX_GetVersion(uint* major, uint* minor, uint* patch)
+{
+    AMD_OUTPUT_DEBUG_STRING("CALL: " AMD_FUNCTION_NAME "\n");
+
+    if (major == NULL || minor == NULL || patch == NULL)
+    {
+        return AOFX_RETURN_CODE_INVALID_POINTER;
+    }
+
+    *major = AMD_AOFX_VERSION_MAJOR;
+    *minor = AMD_AOFX_VERSION_MINOR;
+    *patch = AMD_AOFX_VERSION_PATCH;
+
+    return AOFX_RETURN_CODE_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+// 
+//-------------------------------------------------------------------------------------------------
 AOFX_RETURN_CODE AMD_AOFX_DLL_API AOFX_Initialize(const AOFX_Desc & desc)
 {
     AMD_OUTPUT_DEBUG_STRING("CALL: " AMD_FUNCTION_NAME "\n");

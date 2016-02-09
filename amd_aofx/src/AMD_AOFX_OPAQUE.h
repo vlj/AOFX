@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#ifndef __AMD_AOFX_OPAQUE_DESC_H__
-#define __AMD_AOFX_OPAQUE_DESC_H__
+#ifndef AMD_AOFX_OPAQUE_H
+#define AMD_AOFX_OPAQUE_H
 
 #include "AMD_LIB.h"
 #include "AMD_AOFX.h"
@@ -273,4 +273,4 @@ public:
 
 } // namespace AMD
 
-#endif // __AMD_AOFX_OpaqueDesc_H__
+#endif // AMD_AOFX_OPAQUE_H

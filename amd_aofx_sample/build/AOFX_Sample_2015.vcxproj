@@ -62,20 +62,19 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>AMD_AOFX_COMPILE_DYNAMIC_LIB=1;WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\AGS_LIB\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>AMD_AOFX_COMPILE_DYNAMIC_LIB=1;WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\AGS_LIB\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>amd_ags_x64.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;Usp10.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\AGS_LIB\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;Usp10.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <Manifest>
@@ -84,8 +83,7 @@
     <PostBuildEvent>
       <Command>if not exist "..\bin\d3dcompiler_47.dll" if exist "$(ProgramFiles)\Windows Kits\8.1\Redist\D3D\x64\d3dcompiler_47.dll" xcopy "$(ProgramFiles)\Windows Kits\8.1\Redist\D3D\x64\d3dcompiler_47.dll" "..\bin" /H /R /Y &gt; nul
 if exist "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64d.dll" xcopy "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64d.dll"  "..\bin" /H /R /Y &gt; nul
-if exist "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"  xcopy "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"   "..\bin" /H /R /Y &gt; nul
-xcopy "..\..\AGS_LIB\lib\amd_ags_x64.dll"  "..\bin" /H /R /Y &gt; nul</Command>
+if exist "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"  xcopy "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"   "..\bin" /H /R /Y &gt; nul</Command>
       <Message>Copying dependencies...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -95,7 +93,7 @@ xcopy "..\..\AGS_LIB\lib\amd_ags_x64.dll"  "..\bin" /H /R /Y &gt; nul</Command>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>AMD_AOFX_COMPILE_DYNAMIC_LIB=1;WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\AGS_LIB\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -106,15 +104,14 @@ xcopy "..\..\AGS_LIB\lib\amd_ags_x64.dll"  "..\bin" /H /R /Y &gt; nul</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>AMD_AOFX_COMPILE_DYNAMIC_LIB=1;WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\AGS_LIB\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\ResourceFiles;..\..\AMD_AOFX\inc;..\..\AMD_LIB\inc;..\..\AMD_SDK\inc;..\..\DXUT\Core;..\..\DXUT\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>amd_ags_x64.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;Usp10.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\AGS_LIB\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;Usp10.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <Manifest>
@@ -123,8 +120,7 @@ xcopy "..\..\AGS_LIB\lib\amd_ags_x64.dll"  "..\bin" /H /R /Y &gt; nul</Command>
     <PostBuildEvent>
       <Command>if not exist "..\bin\d3dcompiler_47.dll" if exist "$(ProgramFiles)\Windows Kits\8.1\Redist\D3D\x64\d3dcompiler_47.dll" xcopy "$(ProgramFiles)\Windows Kits\8.1\Redist\D3D\x64\d3dcompiler_47.dll" "..\bin" /H /R /Y &gt; nul
 if exist "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64d.dll" xcopy "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64d.dll"  "..\bin" /H /R /Y &gt; nul
-if exist "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"  xcopy "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"   "..\bin" /H /R /Y &gt; nul
-xcopy "..\..\AGS_LIB\lib\amd_ags_x64.dll"  "..\bin" /H /R /Y &gt; nul</Command>
+if exist "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"  xcopy "..\..\AMD_AOFX\lib\GPUOpen_AOFX_x64.dll"   "..\bin" /H /R /Y &gt; nul</Command>
       <Message>Copying dependencies...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -142,7 +138,7 @@ xcopy "..\..\AGS_LIB\lib\amd_ags_x64.dll"  "..\bin" /H /R /Y &gt; nul</Command>
     <ResourceCompile Include="..\src\ResourceFiles\AOFX_Sample.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AMD_LIB\build\AMD_LIB_2015.vcxproj">
+    <ProjectReference Include="..\..\AMD_LIB\build\AMD_LIB_Minimal_2015.vcxproj">
       <Project>{0D2AEA47-7909-69E3-8221-F4B9EE7FCF44}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\AMD_AOFX\build\AMD_AOFX_2015.vcxproj">

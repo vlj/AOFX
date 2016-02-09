@@ -32,7 +32,6 @@
 #include "SDKmesh.h"
 
 // AMD includes
-#include "amd_ags.h"
 #include "AMD_LIB.h"
 #include "AMD_SDK.h"
 #include "AMD_AOFX.h"
@@ -294,9 +293,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     InitUI();
 
+    // It is okay to call AOFX_GetVersion before AOFX_Initialize
+    unsigned int major, minor, patch;
+    AMD::AOFX_GetVersion(&major, &minor, &patch);
+
+    WCHAR windowTitle[32];
+    swprintf_s(windowTitle, 32, L"AMD AOFX v%d.%d.%d", major, minor, patch);
+
     DXUTInit(true, true, NULL);
     DXUTSetCursorSettings(true, true);
-    DXUTCreateWindow(L"AMD AOFX v2.0");
+    DXUTCreateWindow(windowTitle);
 
     DXUTCreateDevice(D3D_FEATURE_LEVEL_11_0, true, g_uWidth, g_uHeight);
 
@@ -789,7 +795,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pDevice,
         pSurfaceDesc->Width, pSurfaceDesc->Height,
         pSurfaceDesc->SampleDesc.Count, 1, 1,
         DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_D32_FLOAT,
-        DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, AGS_AFR_TRANSFER_DISABLE);
+        DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, 0);
 
     g_AppNormal.Release();
     hr = g_AppNormal.CreateSurface(DXUTGetD3D11Device(),
@@ -797,7 +803,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pDevice,
         pSurfaceDesc->SampleDesc.Count, 1, 1,
         DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT,
         DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN,
-        D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, AGS_AFR_TRANSFER_DISABLE);
+        D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, 0);
     assert(S_OK == hr);
 
     g_AOResult.Release();
@@ -807,7 +813,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pDevice,
         DXGI_FORMAT_R8G8B8A8_UNORM, // SO THAT THE OUTPUT CAN LOOK BLACK AND WHITE
         DXGI_FORMAT_R8G8B8A8_UNORM, // AND TO DEMONSTRATE THE USE OF OUTPUT CHANNELS
         DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN,
-        D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, AGS_AFR_TRANSFER_DISABLE);
+        D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, 0);
     assert(S_OK == hr);
 
     g_AppColor.Release();
@@ -816,7 +822,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pDevice,
         pSurfaceDesc->SampleDesc.Count, 1, 1,
         DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM,
         DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN,
-        D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, AGS_AFR_TRANSFER_DISABLE);
+        D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, 0);
     assert(S_OK == hr);
 
     if (pSurfaceDesc->SampleDesc.Count > 1)
@@ -827,7 +833,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pDevice,
             pSurfaceDesc->Width, pSurfaceDesc->Height, 1, 1, 1,
             DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM,
             DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN,
-            D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, AGS_AFR_TRANSFER_DISABLE);
+            D3D11_USAGE_DEFAULT, false, 0, NULL, NULL, 0);
         assert(S_OK == hr);
     }
 
@@ -942,10 +948,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pDevice,
             g_aoDesc.m_OutputChannelsFlag = 8 | 4 | 2 | 1;
             AOFX_Render(g_aoDesc);
 
-            // Capturing is currently disabled
 #if defined(AMD_AOFX_DEBUG)
             if (g_aoCapture)
             {
+                // Debug capture (can be replayed in capture viewer)
                 AOFX_DebugSerialize(g_aoDesc, "aofx");
             }
 #endif

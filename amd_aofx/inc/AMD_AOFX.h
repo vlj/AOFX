@@ -20,11 +20,12 @@
 // THE SOFTWARE.
 //
 
-#ifndef __AMD_AOFX_H__
-#define __AMD_AOFX_H__
+#ifndef AMD_AOFX_H
+#define AMD_AOFX_H
 
 #   define AMD_AOFX_VERSION_MAJOR             2
-#   define AMD_AOFX_VERSION_MINOR             0
+#   define AMD_AOFX_VERSION_MINOR             1
+#   define AMD_AOFX_VERSION_PATCH             0
 
 // default to static lib
 #   ifndef AMD_AOFX_COMPILE_DYNAMIC_LIB
@@ -44,7 +45,7 @@
 #include "AMD_Types.h"
 
 #   if defined(DEBUG) || defined(_DEBUG)
-#       define AMD_AOFX_DEBUG                 1 // Debugging functionality is currently disabled
+#       define AMD_AOFX_DEBUG                 1
 #   endif
 
 namespace AMD
@@ -226,6 +227,12 @@ private:
 extern "C"
 {
     /**
+    Get AOFX library version number
+    This can be called before AOFX_Initialize
+    */
+    AMD_AOFX_DLL_API AOFX_RETURN_CODE   AOFX_GetVersion(uint* major, uint* minor, uint* patch);
+
+    /**
     Initialize internal data inside AOFX_Desc
     Calling this function requires setting up m_pDevice member
     */
@@ -284,7 +291,7 @@ extern "C"
     AMD_AOFX_DLL_API AOFX_RETURN_CODE   AOFX_Release(const AOFX_Desc & desc);
 
     /**
-    This debugging code is currently disabled
+    Debugging code to save and load AOFX data; This is mostly used by the Capture_Viewer sample
     */
 #   if defined(AMD_AOFX_DEBUG)
     AMD_AOFX_DLL_API AOFX_RETURN_CODE   AOFX_DebugSerialize(AOFX_Desc & desc, const char * params);
@@ -295,4 +302,4 @@ extern "C"
 }
 }
 
-#endif // __AMD_AOFX_H__
+#endif // AMD_AOFX_H
