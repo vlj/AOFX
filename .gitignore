@@ -7,9 +7,12 @@
 # Build results
 VS*/
 [Dd]esktop_*/
+AOFX_Capture_Viewer_Debug_*.*
+AOFX_Capture_Viewer_Release_*.*
 AOFX_Sample_Debug_*.*
 AOFX_Sample_Release_*.*
 amd_aofx/lib/GPUOpen_AOFX_*.*
+amd_aofx_capture_viewer/bin/
 amd_aofx_sample/bin/
 
 # Visual Studo 2015 cache/options directory
