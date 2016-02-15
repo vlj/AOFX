@@ -35,7 +35,7 @@ For Visual Studio 2015, this version of Premake adds the `WindowsTargetPlatformV
 * DXUT is distributed under the terms of the MIT License. See `dxut\MIT.txt`.
 * Premake is distributed under the terms of the BSD License. See `premake\LICENSE.txt`.
 
-DXUT is only used by the sample, not the core library. Only first-party software (specifically `ags_lib`, `amd_aofx`, and `amd_lib`) is needed to build the AOFX library.
+DXUT is only used by the sample, not the core library. Only first-party software (specifically `amd_aofx` and `amd_lib`) is needed to build the AOFX library.
 
 ### Attribution
 * AMD, the AMD Arrow logo, Radeon, and combinations thereof are either registered trademarks or trademarks of Advanced Micro Devices, Inc. in the United States and/or other countries.
