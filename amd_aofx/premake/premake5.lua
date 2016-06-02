@@ -5,7 +5,7 @@ _AMD_LIBRARY_NAME_ALL_CAPS = string.upper(_AMD_LIBRARY_NAME)
 dofile ("../../premake/amd_premake_util.lua")
 
 workspace ("AMD_" .. _AMD_LIBRARY_NAME)
-   configurations { "DLL_Debug", "DLL_Release", "Lib_Debug", "Lib_Release" }
+   configurations { "DLL_Debug", "DLL_Release", "Lib_Debug", "Lib_Release", "DLL_Release_MT" }
    platforms { "Win32", "x64" }
    location "../build"
    filename ("AMD_" .. _AMD_LIBRARY_NAME .. _AMD_VS_SUFFIX)
@@ -22,14 +22,15 @@ workspace ("AMD_" .. _AMD_LIBRARY_NAME)
 externalproject "AMD_LIB_Minimal"
    kind "StaticLib"
    language "C++"
-   location "../../AMD_LIB/build"
+   location "../../amd_lib/shared/d3d11/build"
    filename ("AMD_LIB_Minimal" .. _AMD_VS_SUFFIX)
    uuid "0D2AEA47-7909-69E3-8221-F4B9EE7FCF44"
    configmap {
       ["DLL_Debug"] = "Debug",
       ["DLL_Release"] = "Release",
       ["Lib_Debug"] = "Debug",
-      ["Lib_Release"] = "Release" }
+      ["Lib_Release"] = "Release",
+      ["DLL_Release_MT"] = "Release_MT" }
 
 project ("AMD_" .. _AMD_LIBRARY_NAME)
    language "C++"
@@ -39,12 +40,14 @@ project ("AMD_" .. _AMD_LIBRARY_NAME)
    targetdir "../lib/%{_AMD_LIBRARY_DIR_LAYOUT}"
    objdir "../build/%{_AMD_LIBRARY_DIR_LAYOUT}"
    warnings "Extra"
+   exceptionhandling "Off"
+   rtti "Off"
 
    -- Specify WindowsTargetPlatformVersion here for VS2015
    windowstarget (_AMD_WIN_SDK_VERSION)
 
    files { "../inc/**.h", "../src/**.h", "../src/**.cpp", "../src/Shaders/**.hlsl" }
-   includedirs { "../inc", "../../AMD_LIB/inc" }
+   includedirs { "../inc", "../../amd_lib/shared/common/inc", "../../amd_lib/shared/d3d11/inc" }
    links { "AMD_LIB_Minimal" }
 
    filter "configurations:DLL_*"
@@ -68,6 +71,20 @@ project ("AMD_" .. _AMD_LIBRARY_NAME)
       defines { "WIN32", "NDEBUG", "_WINDOWS", "_WIN32_WINNT=0x0601" }
       flags { "FatalWarnings", "Unicode" }
       optimize "On"
+
+   filter "configurations:DLL_Release_MT"
+      defines { "WIN32", "NDEBUG", "_WINDOWS", "_WIN32_WINNT=0x0601" }
+      flags { "FatalWarnings", "Unicode" }
+      -- link against the static runtime to avoid introducing a dependency
+      -- on the particular version of Visual Studio used to build the DLLs
+      flags { "StaticRuntime" }
+      optimize "On"
+
+   filter "action:vs*"
+      -- specify exception handling model for Visual Studio to avoid
+      -- "'noexcept' used with no exception handling mode specified" 
+      -- warning in vs2015
+      buildoptions { "/EHsc" }
 
    filter "platforms:Win32"
       targetname "%{_AMD_LIBRARY_PREFIX}%{_AMD_LIBRARY_NAME}_x86"
