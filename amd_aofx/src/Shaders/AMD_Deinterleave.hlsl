@@ -240,7 +240,7 @@ void csInterleave(uint3 groupIdx    : SV_GroupID,
 
 #else // if ( DEINTERLEAVE_IMPLEMENTATION == DEINTERLEAVE_IMPLEMENTATION_CS )
 
-#include "../../../AMD_LIB/src/Shaders/AMD_FullscreenPass.hlsl"
+#include "../../../amd_lib/shared/d3d11/src/Shaders/AMD_FullscreenPass.hlsl"
 
 #if (DEINTERLEAVE_FACTOR == 1)
 RWTexture2D<DEINTERLEAVE_TYPE>                   g_t2dDeinterleavedInput      : register(u0);

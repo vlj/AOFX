@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include "../../../AMD_LIB/src/Shaders/AMD_FullscreenPass.hlsl"
+#include "../../../amd_lib/shared/d3d11/src/Shaders/AMD_FullscreenPass.hlsl"
 
 struct ModelData
 {

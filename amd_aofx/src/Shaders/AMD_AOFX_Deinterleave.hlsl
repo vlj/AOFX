@@ -91,7 +91,7 @@ void csAmbientOcclusionDeinterleave(uint3 groupIdx    : SV_GroupID,
 
 #elif ( AOFX_IMPLEMENTATION == AOFX_IMPLEMENTATION_PS )
 
-#include "../../../AMD_LIB/src/Shaders/AMD_FullscreenPass.hlsl"
+#include "../../../amd_lib/shared/d3d11/src/Shaders/AMD_FullscreenPass.hlsl"
 
 void psAmbientOcclusionDeinterleave(PS_FullscreenInput In)
 {
