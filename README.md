@@ -5,7 +5,7 @@
 The AOFX library provides a scalable and GCN-optimized ambient occlusion (AO) solution.
 
 <div>
-  <a href="https://github.com/GPUOpen-Effects/TressFX/releases/latest/"><img src="http://gpuopen-effects.github.io/media/latest-release-button.svg" alt="Latest release" title="Latest release"></a>
+  <a href="https://github.com/GPUOpen-Effects/AOFX/releases/latest/"><img src="http://gpuopen-effects.github.io/media/latest-release-button.svg" alt="Latest release" title="Latest release"></a>
 </div>
 
 Currently, the library supports the High Definition Ambient Occlusion (HDAO) kernel and implements a variety of options:
