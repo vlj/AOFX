@@ -1,8 +1,14 @@
 # AMD AOFX
 
-<img src="amd_aofx_sample/media/Thumbnail.png" width="480" height="285" />
+![AMD AOFX](http://gpuopen-effects.github.io/media/effects/aofx_thumbnail.png)
 
-The AOFX library provides a scalable and GCN-optimized ambient occlusion (AO) solution. Currently, the library supports the High Definition Ambient Occlusion (HDAO) kernel and implements a variety of options:
+The AOFX library provides a scalable and GCN-optimized ambient occlusion (AO) solution.
+
+<div>
+  <a href="https://github.com/GPUOpen-Effects/TressFX/releases/latest/"><img src="http://gpuopen-effects.github.io/media/latest-release-button.svg" alt="Latest release" title="Latest release"></a>
+</div>
+
+Currently, the library supports the High Definition Ambient Occlusion (HDAO) kernel and implements a variety of options:
 * Pixel shader and compute shader implementations
 * Multi-layer approach that provides fine details and smooth, alias-free global ambient occlusion
 * Takes depth buffer or depth+normal buffers as input
@@ -32,7 +38,7 @@ The default SDK for a particular version of Visual Studio (for 2012 or higher) i
 For Visual Studio 2015, this version of Premake adds the `WindowsTargetPlatformVersion` element to the project file to specify which version of the Windows SDK will be used. To change `WindowsTargetPlatformVersion` for Visual Studio 2015, change the value for `_AMD_WIN_SDK_VERSION` in `premake\amd_premake_util.lua` and regenerate the Visual Studio files.
 
 ### Third-Party Software
-* DXUT is distributed under the terms of the MIT License. See `dxut\MIT.txt`.
+* DXUT is distributed under the terms of the MIT License. See `framework\d3d11\dxut\MIT.txt`.
 * Premake is distributed under the terms of the BSD License. See `premake\LICENSE.txt`.
 
 DXUT is only used by the sample, not the core library. Only first-party software (specifically `amd_aofx` and `amd_lib`) is needed to build the AOFX library.
