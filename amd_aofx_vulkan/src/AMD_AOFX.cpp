@@ -20,7 +20,13 @@
 // THE SOFTWARE.
 //
 
+#if AMD_TRESSFX_VULKAN
+#include <vulkan\vulkan.h>
+#elif AMD_TRESSFX_D3D11
 #include <d3d11.h>
+#else
+#error
+#endif
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -86,20 +92,10 @@ AOFX_RETURN_CODE AMD_AOFX_DLL_API AOFX_Render(const AOFX_Desc & desc)
 {
     AMD_OUTPUT_DEBUG_STRING("CALL: " AMD_FUNCTION_NAME "\n");
 
-    if (NULL == desc.m_pDeviceContext)
+    if (VK_NULL_HANDLE == desc.m_pDevice)
     {
-        return AOFX_RETURN_CODE_INVALID_DEVICE_CONTEXT;
+        return AOFX_RETURN_CODE_INVALID_DEVICE;
     }
-
-    AMD::C_SaveRestore_IA save_ia(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_VS save_vs(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_HS save_hs(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_DS save_ds(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_GS save_gs(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_PS save_ps(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_RS save_rs(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_OM save_om(desc.m_pDeviceContext);
-    AMD::C_SaveRestore_CS save_cs(desc.m_pDeviceContext);
 
     AOFX_RETURN_CODE result = desc.m_pOpaque->render(desc);
 
@@ -113,13 +109,9 @@ AOFX_RETURN_CODE AMD_AOFX_DLL_API AOFX_Resize(const AOFX_Desc & desc)
 {
     AMD_OUTPUT_DEBUG_STRING("CALL: " AMD_FUNCTION_NAME "\n");
 
-    if (NULL == desc.m_pDevice)
+    if (VK_NULL_HANDLE == desc.m_pDevice)
     {
         return AOFX_RETURN_CODE_INVALID_DEVICE;
-    }
-    if (NULL == desc.m_pDeviceContext)
-    {
-        return AOFX_RETURN_CODE_INVALID_DEVICE_CONTEXT;
     }
 
     AOFX_RETURN_CODE result = desc.m_pOpaque->resize(desc);
@@ -144,14 +136,13 @@ AOFX_RETURN_CODE AMD_AOFX_DLL_API AOFX_Release(const AOFX_Desc & desc)
 //-------------------------------------------------------------------------------------------------
 AOFX_Desc::AOFX_Desc()
     : m_Implementation(AOFX_IMPLEMENTATION_MASK_KERNEL_CS | AOFX_IMPLEMENTATION_MASK_BLUR_CS | AOFX_IMPLEMENTATION_MASK_UTILITY_CS)
-    , m_pDeviceContext(NULL)
-    , m_pNormalSRV(NULL)
-    , m_pDepthSRV(NULL)
-    , m_pDevice(NULL)
-    , m_pOutputRTV(NULL)
+    , m_pDevice(VK_NULL_HANDLE)
+    , m_pNormalView(VK_NULL_HANDLE)
+    , m_pDepthView(VK_NULL_HANDLE)
+    , m_pOutputView(VK_NULL_HANDLE)
     , m_pOpaque(NULL)
     , m_OutputChannelsFlag(0xF)
-    , m_pOutputBS(NULL)
+//    , m_pOutputBS(NULL)
 {
     AMD_OUTPUT_DEBUG_STRING("CALL: " AMD_FUNCTION_NAME "\n");
 

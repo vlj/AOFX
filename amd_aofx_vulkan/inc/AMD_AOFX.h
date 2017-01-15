@@ -196,6 +196,15 @@ struct AOFX_Desc
 
     Camera                              m_Camera;
 
+#if AMD_TRESSFX_VULKAN
+    VkDevice                            m_pDevice;
+    VkImageView                         m_pDepthView;
+    VkImageView                         m_pNormalView;
+    VkImageView                         m_pOutputView;
+
+    uint2                               m_InputSize;
+    uint                                m_OutputChannelsFlag;
+#elif AMD_TRESSFX_D3D11
     ID3D11Device*                       m_pDevice;
     ID3D11DeviceContext*                m_pDeviceContext;
 
@@ -207,6 +216,9 @@ struct AOFX_Desc
 
     uint                                m_OutputChannelsFlag;
     ID3D11BlendState*                   m_pOutputBS;
+#else
+#error
+#endif
 
     AMD_AOFX_DLL_API                    AOFX_Desc();
 
@@ -295,9 +307,15 @@ extern "C"
     */
 #   if defined(AMD_AOFX_DEBUG)
     AMD_AOFX_DLL_API AOFX_RETURN_CODE   AOFX_DebugSerialize(AOFX_Desc & desc, const char * params);
+#if AMD_TRESSFX_VULKAN
+
+#elif AMD_TRESSFX_D3D11
     AMD_AOFX_DLL_API AOFX_RETURN_CODE   AOFX_DebugDeserialize(AOFX_Desc & desc, const char * params,
                                                               ID3D11Texture2D**          ppT2D[],
                                                               ID3D11ShaderResourceView** ppSRV[]);
+#else
+#error
+#endif
 #   endif
 }
 }

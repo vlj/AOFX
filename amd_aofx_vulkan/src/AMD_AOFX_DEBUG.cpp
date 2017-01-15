@@ -20,7 +20,13 @@
 // THE SOFTWARE.
 //
 
+#if AMD_TRESSFX_VULKAN
+#include <vulkan\vulkan.h>
+#elif AMD_TRESSFX_D3D11
 #include <d3d11.h>
+#else
+#error
+#endif
 
 #if AMD_AOFX_COMPILE_DYNAMIC_LIB
 # define AMD_DLL_EXPORTS
@@ -47,14 +53,14 @@ AMD_AOFX_DLL_API AOFX_RETURN_CODE AOFX_DebugSerialize(AOFX_Desc& desc, const cha
     AMD_OUTPUT_DEBUG_STRING("CALL: " AMD_FUNCTION_NAME " \n");
 
     HRESULT hr = S_OK;
-    ID3D11Texture2D *pDepthT2D = NULL, *pNormalT2D = NULL;
+//    ID3D11Texture2D *pDepthT2D = NULL, *pNormalT2D = NULL;
 
     std::string strParams(params);
     std::wstring wstrParams(strParams.begin(), strParams.end());
 
-    if (desc.m_pDepthSRV)
+    if (desc.m_pDepthView)
     {
-        std::wstring depth = wstrParams + L".depth.dds";
+        /*std::wstring depth = wstrParams + L".depth.dds";
         desc.m_pDepthSRV->GetResource((ID3D11Resource**)&pDepthT2D);
         hr = DirectX::SaveDDSTextureToFile(desc.m_pDeviceContext, pDepthT2D, depth.c_str());
         AMD_SAFE_RELEASE(pDepthT2D);
@@ -62,11 +68,11 @@ AMD_AOFX_DLL_API AOFX_RETURN_CODE AOFX_DebugSerialize(AOFX_Desc& desc, const cha
         {
             AMD_OUTPUT_DEBUG_STRING("AMD_AO DebugSerialize Error : Can't save Depth Texture\n");
             return AOFX_RETURN_CODE_FAIL;
-        }
+        }*/
     }
-    if (desc.m_pNormalSRV)
+    if (desc.m_pNormalView)
     {
-        std::wstring normal = wstrParams + L".normal.dds";
+        /*std::wstring normal = wstrParams + L".normal.dds";
         desc.m_pNormalSRV->GetResource((ID3D11Resource**)&pNormalT2D);
         hr = DirectX::SaveDDSTextureToFile(desc.m_pDeviceContext, pNormalT2D, normal.c_str());
         AMD_SAFE_RELEASE(pNormalT2D);
@@ -74,7 +80,7 @@ AMD_AOFX_DLL_API AOFX_RETURN_CODE AOFX_DebugSerialize(AOFX_Desc& desc, const cha
         {
             AMD_OUTPUT_DEBUG_STRING("AMD_AO DebugSerialize Error : Can't save Normal Texture\n");
             return AOFX_RETURN_CODE_FAIL;
-        }
+        }*/
     }
 
     strParams += ".txt";
@@ -171,7 +177,7 @@ AMD_AOFX_DLL_API AOFX_RETURN_CODE AOFX_DebugDeserialize(AOFX_Desc& desc,
     std::string strParams(params);
     std::wstring wstrParams(strParams.begin(), strParams.end());
 
-    if (ppT2D != NULL && ppSRV != NULL &&
+/*    if (ppT2D != NULL && ppSRV != NULL &&
         ppT2D[0] != NULL && ppSRV[0] != NULL)
     {
         std::wstring depth = wstrParams + L".depth.dds";
@@ -184,7 +190,7 @@ AMD_AOFX_DLL_API AOFX_RETURN_CODE AOFX_DebugDeserialize(AOFX_Desc& desc,
         std::wstring normal = wstrParams + L".normal.dds";
         hr = DirectX::CreateDDSTextureFromFile(desc.m_pDevice, normal.c_str(), (ID3D11Resource**)ppT2D[1], ppSRV[1]);
         desc.m_pNormalSRV = *ppSRV[1];
-    }
+    }*/
 
     strParams += ".txt";
     FILE * file = fopen(strParams.c_str(), "rt");

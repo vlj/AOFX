@@ -48,7 +48,7 @@ project ("AMD_" .. _AMD_LIBRARY_NAME)
    defines { "AMD_TRESSFX_VULKAN=1" }
 
    files { "../inc/**.h", "../src/**.h", "../src/**.cpp", "../src/Shaders/**.hlsl" }
-   includedirs { "../inc", "../../amd_lib/shared/common/inc", "../../amd_lib/shared/d3d11/inc" }
+   includedirs { "../inc", "../../amd_lib/shared/common/inc", "../../amd_lib/shared/d3d11/inc", "$(VULKAN_SDK)/Include"}
    links { "AMD_LIB_Minimal" }
 
    filter "configurations:DLL_*"

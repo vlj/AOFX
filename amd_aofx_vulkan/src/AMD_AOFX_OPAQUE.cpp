@@ -20,7 +20,13 @@
 // THE SOFTWARE.
 //
 
+#if AMD_TRESSFX_VULKAN
+#include <vulkan\vulkan.h>
+#elif AMD_TRESSFX_D3D11
 #include <d3d11.h>
+#else
+#error
+#endif
 #include <assert.h>
 #include <fstream>
 #include <string>
