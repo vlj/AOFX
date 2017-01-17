@@ -87,10 +87,10 @@
 
 struct AO_Data
 {
-  uint2                                          m_OutputSize;
-  float2                                         m_OutputSizeRcp;
-  uint2                                          m_InputSize;                 // size (xy), inv size (zw)
-  float2                                         m_InputSizeRcp;                  // size (xy), inv size (zw)
+  uvec2                                          m_OutputSize;
+  vec2                                           m_OutputSizeRcp;
+  uvec2                                          m_InputSize;                 // size (xy), inv size (zw)
+  vec2                                           m_InputSizeRcp;                  // size (xy), inv size (zw)
 
   float                                          m_CameraQ;                    // far / (far - near)
   float                                          m_CameraQTimesZNear;          // cameraQ * near
@@ -108,15 +108,15 @@ struct AO_Data
   float                                          m_ViewDistanceDiscard;
 
   float                                          m_FadeIntervalLength;
-  float3                                         _pad;
+  vec3                                           _pad;
 };
 
 struct AO_InputData
 {
-  uint2                                          m_OutputSize;
-  float2                                         m_OutputSizeRcp;
-  uint2                                          m_InputSize;                 // size (xy), inv size (zw)
-  float2                                         m_InputSizeRcp;              // size (xy), inv size (zw)
+  uvec2                                          m_OutputSize;
+  vec2                                           m_OutputSizeRcp;
+  uvec2                                          m_InputSize;                 // size (xy), inv size (zw)
+  vec2                                           m_InputSizeRcp;              // size (xy), inv size (zw)
 
   float                                          m_ZFar;
   float                                          m_ZNear;
@@ -138,25 +138,25 @@ struct AO_InputData
 // AO constant buffers, samplers and textures
 //======================================================================================================
 
-SamplerState                                     g_ssPointClamp                : register( s0 );
-SamplerState                                     g_ssLinearClamp               : register( s1 );
-SamplerState                                     g_ssPointWrap                 : register( s2 );
-SamplerState                                     g_ssLinearWrap                : register( s3 );
+layout(set = 0, binding = 0) uniform sampler     g_ssPointClamp;
+layout(set = 0, binding = 1) uniform sampler     g_ssLinearClamp;
+layout(set = 0, binding = 2) uniform sampler     g_ssPointWrap;
+layout(set = 0, binding = 3) uniform sampler     g_ssLinearWrap;
 
 #if (AOFX_MSAA_LEVEL == 1)
-Texture2D< float >                               g_t2dDepth                    : register( t0 );
-Texture2D< float4 >                              g_t2dNormal                   : register( t1 );
+layout(set = 1, binding = 4) uniform texture2D   g_t2dDepth;
+layout(set = 1, binding = 5) uniform texture2D   g_t2dNormal;
 #else
 Texture2DMS< float, AOFX_MSAA_LEVEL >              g_t2dDepth                    : register( t0 );
 Texture2DMS< float4, AOFX_MSAA_LEVEL >             g_t2dNormal                   : register( t1 );
 #endif
 
-Buffer<int2>                                     g_b1dSamplePattern            : register( t2 );
+layout(set = 1, binding = 6) uniform samplerBuffer  g_b1dSamplePattern;
 
 #if (AO_DEINTERLEAVE_FACTOR == 1)
-Texture2D<AO_INPUT_TYPE>                         g_t2dInput                    : register( t3 );
+layout(set = 1, binding = 7) uniform texture2D   g_t2dInput;
 #else
-Texture2DArray<AO_INPUT_TYPE>                    g_t2daInput                   : register( t3 );
+layout(set = 1, binding = 8) uniform texture2DArray g_t2daInput;
 #endif
 
 cbuffer                                          CB_AO_DATA                    : register( b0 )
@@ -172,7 +172,7 @@ cbuffer                                          CB_SAMPLE_PATTERN             :
 #if defined( ULTRA_SAMPLES )
 
 # define NUM_VALLEYS                             AO_ULTRA_SAMPLE_COUNT
-static const int2                                g_SamplePattern[NUM_VALLEYS] =
+const ivec2                                g_SamplePattern[NUM_VALLEYS] =
 {
   {0, -9}, {4, -9}, {2, -6}, {6, -6},
   {0, -3}, {4, -3}, {8, -3}, {2, 0},
@@ -187,7 +187,7 @@ static const int2                                g_SamplePattern[NUM_VALLEYS] =
 #elif defined( HIGH_SAMPLES )
 
 # define NUM_VALLEYS                             AO_HIGH_SAMPLE_COUNT
-static const int2                                g_SamplePattern[NUM_VALLEYS] =
+const ivec2                                g_SamplePattern[NUM_VALLEYS] =
 {
   {0, -9}, {4, -9}, {2, -6}, {6, -6},
   {0, -3}, {4, -3}, {8, -3}, {2, 0},
@@ -200,7 +200,7 @@ static const int2                                g_SamplePattern[NUM_VALLEYS] =
 #elif defined( MEDIUM_SAMPLES )
 
 # define NUM_VALLEYS                             AO_MEDIUM_SAMPLE_COUNT
-static const int2                                g_SamplePattern[NUM_VALLEYS] =
+const ivec2                                g_SamplePattern[NUM_VALLEYS] =
 {
   {0, -9}, {4, -9}, {2, -6}, {6, -6},
   {0, -3}, {4, -3}, {8, -3}, {2, 0},
@@ -211,7 +211,7 @@ static const int2                                g_SamplePattern[NUM_VALLEYS] =
 #else //if defined( LOW_SAMPLES )
 
 # define NUM_VALLEYS                             AO_LOW_SAMPLE_COUNT
-static const int2                                g_SamplePattern[NUM_VALLEYS] =
+const ivec2                                g_SamplePattern[NUM_VALLEYS] =
 {
   {0, -9}, {2, -6}, {0, -3}, {8, -3},
   {6, 0}, {4, 3}, {2, 6}, {9, 6},
@@ -223,7 +223,7 @@ static const int2                                g_SamplePattern[NUM_VALLEYS] =
 // AO packing function
 //======================================================================================================
 
-uint normalToUint16(float3 unitNormal, out int zSign)
+uint normalToUint16(vec3 unitNormal, out int zSign)
 {
   zSign = sign(unitNormal.z);
 
@@ -235,9 +235,9 @@ uint normalToUint16(float3 unitNormal, out int zSign)
   return result;
 }
 
-float3 uint16ToNormal(uint normal, int zSign)
+vec3 uint16ToNormal(uint normal, int zSign)
 {
-  float3 result;
+  vec3 result;
 
   int x = (normal & 0x000000FF);
   int y = (normal & 0x0000FF00) >> 8;
@@ -261,7 +261,7 @@ float uint16ToDepth(uint depth)
 }
 
 // Packs a float2 to a unit
-uint float2ToUint32(float2 f2Value)
+uint float2ToUint32(vec2 f2Value)
 {
   uint uRet = 0;
 
@@ -270,7 +270,7 @@ uint float2ToUint32(float2 f2Value)
   return uRet;
 }
 
-uint int2ToUint(int2 i2Value)
+uint int2ToUint(ivec2 i2Value)
 {
   uint uRet = 0;
 
@@ -280,24 +280,24 @@ uint int2ToUint(int2 i2Value)
 }
 
 // Unpacks a uint to a float2
-float2 uintToFloat2(uint uValue)
+vec2 uintToFloat2(uint uValue)
 {
-  return float2(f16tof32(uValue), f16tof32(uValue >> 16));
+  return vec2(f16tof32(uValue), f16tof32(uValue >> 16));
 }
 
-int2 uintToInt2(uint uValue)
+ivec2 uintToInt2(uint uValue)
 {
-  return int2(uValue & 65536, uValue >> 16);
+  return ivec2(uValue & 65536, uValue >> 16);
 }
 
-float3 loadCameraSpacePositionT2D( float2 screenCoord, int2 layerIdx )
+vec3 loadCameraSpacePositionT2D( vec2 screenCoord, ivec2 layerIdx )
 {
 
 #if (AO_DEINTERLEAVE_FACTOR == 1)
   AO_INPUT_TYPE aoInput = g_t2dInput.SampleLevel(g_ssPointClamp, screenCoord.xy * g_cbAO.m_OutputSizeRcp, 0.0f);
 #else //  (AO_DEINTERLEAVE_FACTOR == 1)
   int layer = layerIdx.x + MUL_AO_DEINTERLEAVE_FACTOR(layerIdx.y);
-  AO_INPUT_TYPE aoInput = g_t2daInput.SampleLevel(g_ssPointClamp, float3((screenCoord.xy + float2(0.5, 0.5)) * g_cbAO.m_OutputSizeRcp, layer), 0.0f);
+  AO_INPUT_TYPE aoInput = g_t2daInput.SampleLevel(g_ssPointClamp, vec3((screenCoord.xy + vec2(0.5, 0.5)) * g_cbAO.m_OutputSizeRcp, layer), 0.0f);
 #endif //  (AO_DEINTERLEAVE_FACTOR == 1)
 
 #if (AOFX_NORMAL_OPTION == AOFX_NORMAL_OPTION_NONE)
@@ -305,19 +305,19 @@ float3 loadCameraSpacePositionT2D( float2 screenCoord, int2 layerIdx )
   float camera_z = aoInput.x;
 
 # if (AO_DEINTERLEAVE_FACTOR == 1)
-  float2 camera = screenCoord.xy * g_cbAO.m_InputSizeRcp - float2(1.0f, 1.0f);
+  vec2 camera = screenCoord.xy * g_cbAO.m_InputSizeRcp - vec2(1.0f, 1.0f);
 # else //  (AO_DEINTERLEAVE_FACTOR == 1)
-  float2 camera = (MUL_AO_DEINTERLEAVE_FACTOR(screenCoord.xy) + layerIdx + float2(0.5, 0.5)) * g_cbAO.m_InputSizeRcp - float2(1.0f, 1.0f);
+  vec2 camera = (MUL_AO_DEINTERLEAVE_FACTOR(screenCoord.xy) + layerIdx + vec2(0.5, 0.5)) * g_cbAO.m_InputSizeRcp - vec2(1.0f, 1.0f);
 # endif //  (AO_DEINTERLEAVE_FACTOR == 1)
 
   camera.x = camera.x * camera_z * g_cbAO.m_CameraTanHalfFovHorizontal;
   camera.y = camera.y * camera_z * -g_cbAO.m_CameraTanHalfFovVertical;
 
-  float3 position = float3(camera.xy, camera_z);
+  vec3 position = vec3(camera.xy, camera_z);
 
 #elif (AOFX_NORMAL_OPTION == AOFX_NORMAL_OPTION_READ_FROM_SRV)
 
-  float3 position = aoInput.yzw;
+  vec3 position = aoInput.yzw;
 
 #endif
 

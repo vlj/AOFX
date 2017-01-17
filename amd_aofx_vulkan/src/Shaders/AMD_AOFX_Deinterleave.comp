@@ -45,31 +45,31 @@ void csAmbientOcclusionDeinterleave(uint3 groupIdx    : SV_GroupID,
                                     uint  threadIndex : SV_GroupIndex,
                                     uint3 dispatchIdx : SV_DispatchThreadID)
 {
-  int2   screenCoord;
-  float3 position;
+  ivec2   screenCoord;
+  vec3 position;
 
-  int2 layerIdx = MOD_AO_DEINTERLEAVE_FACTOR(groupIdx.xy);
+  ivec2 layerIdx = MOD_AO_DEINTERLEAVE_FACTOR(groupIdx.xy);
   int  layerIndex = layerIdx.x + MUL_AO_DEINTERLEAVE_FACTOR(layerIdx.y);
-  int2 layerGroupIdx = DIV_AO_DEINTERLEAVE_FACTOR(groupIdx.xy);
+  ivec2 layerGroupIdx = DIV_AO_DEINTERLEAVE_FACTOR(groupIdx.xy);
 
-  int2 layerGroupCoord = layerGroupIdx.xy * uint2(AO_GROUP_THREAD_DIM, AO_GROUP_THREAD_DIM);
-  int2 layerDispatchIdx = layerGroupCoord.xy + threadIdx.xy;
+  ivec2 layerGroupCoord = layerGroupIdx.xy * uvec2(AO_GROUP_THREAD_DIM, AO_GROUP_THREAD_DIM);
+  ivec2 layerDispatchIdx = layerGroupCoord.xy + threadIdx.xy;
 
-  screenCoord = layerDispatchIdx.xy + int2(-AO_GROUP_TEXEL_OVERLAP, -AO_GROUP_TEXEL_OVERLAP);
+  screenCoord = layerDispatchIdx.xy + ivec2(-AO_GROUP_TEXEL_OVERLAP, -AO_GROUP_TEXEL_OVERLAP);
   position = loadCameraSpacePositionT2D(screenCoord, layerIdx);
-  storePositionInCache(position, threadIdx.xy + int2(AO_GROUP_THREAD_DIM * 0, AO_GROUP_THREAD_DIM * 0));
+  storePositionInCache(position, threadIdx.xy + ivec2(AO_GROUP_THREAD_DIM * 0, AO_GROUP_THREAD_DIM * 0));
 
-  screenCoord = layerDispatchIdx.xy + int2(-AO_GROUP_TEXEL_OVERLAP, AO_GROUP_TEXEL_OVERLAP);
+  screenCoord = layerDispatchIdx.xy + ivec2(-AO_GROUP_TEXEL_OVERLAP, AO_GROUP_TEXEL_OVERLAP);
   position = loadCameraSpacePositionT2D(screenCoord, layerIdx);
-  storePositionInCache(position, threadIdx.xy + int2(AO_GROUP_THREAD_DIM * 0, AO_GROUP_THREAD_DIM * 1));
+  storePositionInCache(position, threadIdx.xy + ivec2(AO_GROUP_THREAD_DIM * 0, AO_GROUP_THREAD_DIM * 1));
 
-  screenCoord = layerDispatchIdx.xy + int2(AO_GROUP_TEXEL_OVERLAP, -AO_GROUP_TEXEL_OVERLAP);
+  screenCoord = layerDispatchIdx.xy + ivec2(AO_GROUP_TEXEL_OVERLAP, -AO_GROUP_TEXEL_OVERLAP);
   position = loadCameraSpacePositionT2D(screenCoord, layerIdx);
-  storePositionInCache(position, threadIdx.xy + int2(AO_GROUP_THREAD_DIM * 1, AO_GROUP_THREAD_DIM * 0));
+  storePositionInCache(position, threadIdx.xy + ivec2(AO_GROUP_THREAD_DIM * 1, AO_GROUP_THREAD_DIM * 0));
 
-  screenCoord = layerDispatchIdx.xy + int2(AO_GROUP_TEXEL_OVERLAP, AO_GROUP_TEXEL_OVERLAP);
+  screenCoord = layerDispatchIdx.xy + ivec2(AO_GROUP_TEXEL_OVERLAP, AO_GROUP_TEXEL_OVERLAP);
   position = loadCameraSpacePositionT2D(screenCoord, layerIdx);
-  storePositionInCache(position, threadIdx.xy + int2(AO_GROUP_THREAD_DIM * 1, AO_GROUP_THREAD_DIM * 1));
+  storePositionInCache(position, threadIdx.xy + ivec2(AO_GROUP_THREAD_DIM * 1, AO_GROUP_THREAD_DIM * 1));
 
   GroupMemoryBarrierWithGroupSync();
 
@@ -77,7 +77,7 @@ void csAmbientOcclusionDeinterleave(uint3 groupIdx    : SV_GroupID,
        (layerDispatchIdx.y < (int)g_cbAO.m_OutputSize.y) &&
        (layerIndex < AO_DEINTERLEAVE_FACTOR_SQR) )
   {
-    int2 cacheCoord = threadIdx.xy + int2(AO_GROUP_TEXEL_OVERLAP, AO_GROUP_TEXEL_OVERLAP);
+    ivec2 cacheCoord = threadIdx.xy + ivec2(AO_GROUP_TEXEL_OVERLAP, AO_GROUP_TEXEL_OVERLAP);
     position = fetchPositionFromCache(layerDispatchIdx, cacheCoord, layerIdx);
     float ambientOcclusion = kernelHDAO(position, layerDispatchIdx.xy, cacheCoord, layerIndex, layerIdx, layerIndex);
 
@@ -95,13 +95,13 @@ void csAmbientOcclusionDeinterleave(uint3 groupIdx    : SV_GroupID,
 
 void psAmbientOcclusionDeinterleave(PS_FullscreenInput In)
 {
-  uint2  deinterleavedSize = g_cbAO.m_OutputSize;
-  uint2  dispatchIdx = (uint2) (In.position.xy);
-  int2   layerIdx = dispatchIdx / deinterleavedSize;
+  uvec2  deinterleavedSize = g_cbAO.m_OutputSize;
+  uvec2  dispatchIdx = (uvec2) (In.position.xy);
+  ivec2   layerIdx = dispatchIdx / deinterleavedSize;
   int    layerIndex = layerIdx.x + layerIdx.y * AO_DEINTERLEAVE_FACTOR;
-  uint2  layerDispatchIdx = dispatchIdx % deinterleavedSize;
-  float3 position = fetchPositionFromCache(layerDispatchIdx.xy, uint2(0, 0), layerIdx);
-  float  ambientOcclusion = kernelHDAO(position, layerDispatchIdx.xy, int2(0, 0), layerIndex, layerIdx, layerIndex);
+  uvec2  layerDispatchIdx = dispatchIdx % deinterleavedSize;
+  vec3 position = fetchPositionFromCache(layerDispatchIdx.xy, uvec2(0, 0), layerIdx);
+  float  ambientOcclusion = kernelHDAO(position, layerDispatchIdx.xy, ivec2(0, 0), layerIndex, layerIdx, layerIndex);
 
     if ( (layerDispatchIdx.x < g_cbAO.m_OutputSize.x) &&
          (layerDispatchIdx.y < g_cbAO.m_OutputSize.y) &&
