@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include "AMD_AOFX_Common.hlsl"
+#include "AMD_AOFX_Common.glsl"
 
 #pragma warning( disable : 3571 )    // disable "pow(f,e) will not work for negative f" warnings
 
@@ -35,7 +35,7 @@
 #ifndef AO_BLUR_SEPARABLE 
 # define AO_BLUR_SEPARABLE                       AO_BLUR_NON_SEPARABLE
 #endif
-Texture2D<float>                                 g_t2dAO                       : register( t2 );
+layout(set = 0, binding = 0) uniform texture2D   g_t2dAO;
 
 RWTexture2D<float>                               g_t2dOutput                   : register( u0 );
 
@@ -64,7 +64,7 @@ groupshared AO_Depth                             g_SharedCache[AO_BLUR_GROUP_THR
 groupshared AO_Depth                             g_SharedCache[AO_BLUR_GROUP_THREAD_DIM][AO_BLUR_GROUP_THREAD_DIM * 3];
 #endif
 
-AO_Depth loadDepthAndAmbientOcclusion(float2 uv)
+AO_Depth loadDepthAndAmbientOcclusion(vec2 uv)
 {
   AO_Depth Out;
   Out.m_AO = g_t2dAO.SampleLevel(g_ssLinearClamp, uv, 0.0f);
@@ -73,24 +73,24 @@ AO_Depth loadDepthAndAmbientOcclusion(float2 uv)
   return Out;
 }
 
-void   storeDepthAndAmbientOcclusionInCache(AO_Depth In, int2 cacheCoord)
+void   storeDepthAndAmbientOcclusionInCache(AO_Depth In, ivec2 cacheCoord)
 {
   g_SharedCache[cacheCoord.y][cacheCoord.x] = In;
 }
 
-void   updateAmbientOcclusionInCache(float ao, int2 cacheCoord)
+void   updateAmbientOcclusionInCache(float ao, ivec2 cacheCoord)
 {
   g_SharedCache[cacheCoord.y][cacheCoord.x].m_AO = ao;
 }
 
-AO_Depth fetchDepthAndAmbientOcclusionFromCache(int2 screenCoord, int2 cacheCoord)
+AO_Depth fetchDepthAndAmbientOcclusionFromCache(ivec2 screenCoord, ivec2 cacheCoord)
 {
   return g_SharedCache[cacheCoord.y][cacheCoord.x];
 }
 
 #define DEPTH_SIGMA g_cbInputData.m_DepthUpsampleThreshold
 
-float  kernelBilateralBlurVertical(float2 screenCoord, int2 cacheCoord)
+float  kernelBilateralBlurVertical(vec2 screenCoord, ivec2 cacheCoord)
 {
   float centerDepth = fetchDepthAndAmbientOcclusionFromCache(screenCoord, cacheCoord).m_Depth;
   float centerAO = fetchDepthAndAmbientOcclusionFromCache(screenCoord, cacheCoord).m_AO;
@@ -100,15 +100,14 @@ float  kernelBilateralBlurVertical(float2 screenCoord, int2 cacheCoord)
   float sigmaSqr = 2.0f * sigma * sigma;
   float depthSigma = DEPTH_SIGMA ; //g_cbInputData.m_DepthUpsampleThreshold;
 
-  [unroll]
   for (int i = (-AOFX_BLUR_RADIUS) + 1; i < AOFX_BLUR_RADIUS; i++)
   {
-    float deltaDepth = centerDepth - fetchDepthAndAmbientOcclusionFromCache(screenCoord + int2(0, i), cacheCoord + int2(0, i)).m_Depth;
-    float deltaAO = centerAO - fetchDepthAndAmbientOcclusionFromCache(screenCoord + int2(0, i), cacheCoord + int2(0, i)).m_AO;
+    float deltaDepth = centerDepth - fetchDepthAndAmbientOcclusionFromCache(screenCoord + ivec2(0, i), cacheCoord + ivec2(0, i)).m_Depth;
+    float deltaAO = centerAO - fetchDepthAndAmbientOcclusionFromCache(screenCoord + ivec2(0, i), cacheCoord + ivec2(0, i)).m_AO;
     float weightGaussian = exp( -(i * i) / sigmaSqr ) * (abs(deltaDepth) < DEPTH_SIGMA ? 1.0f : 0.0f);
     float weightDepth = exp( -(deltaDepth * deltaDepth) / depthSigma );
     float weight = weightGaussian;
-    filtered += fetchDepthAndAmbientOcclusionFromCache(screenCoord + int2(0, i), cacheCoord + int2(0, i)).m_AO * weight;
+    filtered += fetchDepthAndAmbientOcclusionFromCache(screenCoord + ivec2(0, i), cacheCoord + ivec2(0, i)).m_AO * weight;
     weightSum += weight * weightDepth;
   }
 
@@ -127,15 +126,14 @@ float  kernelBilateralBlurHorizontal(float2 screenCoord, int2 cacheCoord)
   float sigmaSqr = 2.0f * sigma * sigma;
   float depthSigma = DEPTH_SIGMA;
 
-  [unroll]
   for (int i = (-AOFX_BLUR_RADIUS) + 1; i < AOFX_BLUR_RADIUS; i++)
   {
-    float deltaDepth = centerDepth - fetchDepthAndAmbientOcclusionFromCache(screenCoord + int2(i, 0), cacheCoord + int2(i, 0)).m_Depth;
-    float deltaAO = centerAO - fetchDepthAndAmbientOcclusionFromCache(screenCoord + int2(0, i), cacheCoord + int2(0, i)).m_AO;
+    float deltaDepth = centerDepth - fetchDepthAndAmbientOcclusionFromCache(screenCoord + ivec2(i, 0), cacheCoord + ivec2(i, 0)).m_Depth;
+    float deltaAO = centerAO - fetchDepthAndAmbientOcclusionFromCache(screenCoord + ivec2(0, i), cacheCoord + ivec2(0, i)).m_AO;
     float weightGaussian = exp( -(i * i) / sigmaSqr ) * (abs(deltaDepth) < DEPTH_SIGMA ? 1.0f : 0.0f);
     float weightDepth = exp( -(deltaDepth * deltaDepth) / depthSigma );
     float weight = weightGaussian;
-    filtered += fetchDepthAndAmbientOcclusionFromCache(screenCoord + int2(i, 0), cacheCoord + int2(i, 0)).m_AO * weight;
+    filtered += fetchDepthAndAmbientOcclusionFromCache(screenCoord + ivec2(i, 0), cacheCoord + ivec2(i, 0)).m_AO * weight;
     weightSum += weight * weightDepth;
   }
 
@@ -157,45 +155,45 @@ void csBilateralBlur(uint3 groupIdx    : SV_GroupID,
   int2 cacheCoord, cacheCoord_left, cacheCoord_right;
   AO_Depth aoDepth;
 
-  float2 baseCoord = dispatchIdx.xy + float2(0.5f, 0.5f);
+  vec2 baseCoord = dispatchIdx.xy + vec2(0.5f, 0.5f);
 
-  screenCoord = baseCoord + float2(-AO_BLUR_GROUP_TEXEL_OVERLAP, -AO_BLUR_GROUP_TEXEL_OVERLAP);
+  screenCoord = baseCoord + vec2(-AO_BLUR_GROUP_TEXEL_OVERLAP, -AO_BLUR_GROUP_TEXEL_OVERLAP);
   aoDepth = loadDepthAndAmbientOcclusion(screenCoord * g_cbInputData.m_OutputSizeRcp);
 
-  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + int2(0, 0));
+  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + ivec2(0, 0));
 
-  screenCoord = baseCoord + float2(-AO_BLUR_GROUP_TEXEL_OVERLAP, -AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM);
+  screenCoord = baseCoord + vec2(-AO_BLUR_GROUP_TEXEL_OVERLAP, -AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM);
   aoDepth = loadDepthAndAmbientOcclusion(screenCoord * g_cbInputData.m_OutputSizeRcp);
 
-  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + int2(0, AO_BLUR_GROUP_THREAD_DIM));
+  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + ivec2(0, AO_BLUR_GROUP_THREAD_DIM));
 
-  screenCoord = baseCoord + float2(-AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM, -AO_BLUR_GROUP_TEXEL_OVERLAP);
+  screenCoord = baseCoord + vec2(-AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM, -AO_BLUR_GROUP_TEXEL_OVERLAP);
   aoDepth = loadDepthAndAmbientOcclusion(screenCoord * g_cbInputData.m_OutputSizeRcp);
 
-  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + int2(AO_BLUR_GROUP_THREAD_DIM, 0));
+  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + ivec2(AO_BLUR_GROUP_THREAD_DIM, 0));
 
-  screenCoord = baseCoord + float2(-AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM, -AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM);
+  screenCoord = baseCoord + vec2(-AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM, -AO_BLUR_GROUP_TEXEL_OVERLAP + AO_BLUR_GROUP_THREAD_DIM);
   aoDepth = loadDepthAndAmbientOcclusion(screenCoord * g_cbInputData.m_OutputSizeRcp);
 
-  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + int2(AO_BLUR_GROUP_THREAD_DIM, AO_BLUR_GROUP_THREAD_DIM));
+  storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + ivec2(AO_BLUR_GROUP_THREAD_DIM, AO_BLUR_GROUP_THREAD_DIM));
 
   GroupMemoryBarrierWithGroupSync();
 
-  int2 cachedCoord1 = threadIdx.xy + int2(0, AO_BLUR_GROUP_TEXEL_OVERLAP) ;
-  float aoFiltered1 = kernelBilateralBlurVertical(float2(0,0), cachedCoord1);
+  int2 cachedCoord1 = threadIdx.xy + ivec2(0, AO_BLUR_GROUP_TEXEL_OVERLAP) ;
+  float aoFiltered1 = kernelBilateralBlurVertical(vec2(0,0), cachedCoord1);
 
-  int2 cachedCoord2 = threadIdx.xy + int2(AO_BLUR_GROUP_THREAD_DIM, AO_BLUR_GROUP_TEXEL_OVERLAP) ;
-  float aoFiltered2 = kernelBilateralBlurVertical(float2(0,0), cachedCoord2);
+  int2 cachedCoord2 = threadIdx.xy + ivec2(AO_BLUR_GROUP_THREAD_DIM, AO_BLUR_GROUP_TEXEL_OVERLAP) ;
+  float aoFiltered2 = kernelBilateralBlurVertical(vec2(0,0), cachedCoord2);
 
-  GroupMemoryBarrierWithGroupSync();
+  groupMemoryBarrier();
 
   updateAmbientOcclusionInCache(aoFiltered1, cachedCoord1);
   updateAmbientOcclusionInCache(aoFiltered2, cachedCoord2);
 
-  GroupMemoryBarrierWithGroupSync();
+  groupMemoryBarrier();
 
-  int2 cachedCoord = threadIdx.xy + int2(AO_BLUR_GROUP_TEXEL_OVERLAP, AO_BLUR_GROUP_TEXEL_OVERLAP) ;
-  float aoFiltered = kernelBilateralBlurHorizontal(float2(0,0), cachedCoord);
+  int2 cachedCoord = threadIdx.xy + ivec2(AO_BLUR_GROUP_TEXEL_OVERLAP, AO_BLUR_GROUP_TEXEL_OVERLAP) ;
+  float aoFiltered = kernelBilateralBlurHorizontal(vec2(0,0), cachedCoord);
 
   if ( (dispatchIdx.x < g_cbInputData.m_OutputSize.x) && (dispatchIdx.y < g_cbInputData.m_OutputSize.y) )
   {
@@ -216,26 +214,26 @@ void csBilateralBlurVertical(uint3 groupIdx    : SV_GroupID,
   int2 cacheCoord, cacheCoord_left, cacheCoord_right;
   AO_Depth aoDepth;
 
-  float2 baseCoord = dispatchIdx.xy + float2(0.5f, 0.5f);
+  float2 baseCoord = dispatchIdx.xy + vec2(0.5f, 0.5f);
 
   int cacheOffset = 0;
 
   for (int baseOffset = -AOFX_BLUR_RADIUS; baseOffset <= AOFX_BLUR_RADIUS + AO_BLUR_GROUP_THREAD_DIM; baseOffset += AO_BLUR_GROUP_THREAD_DIM)
   {
-    screenCoord = baseCoord + float2(0, baseOffset);
+    screenCoord = baseCoord + vec2(0, baseOffset);
     aoDepth = loadDepthAndAmbientOcclusion(screenCoord * g_cbInputData.m_OutputSizeRcp);
-    storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + int2(0, cacheOffset));
+    storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + ivec2(0, cacheOffset));
 
     cacheOffset += AO_BLUR_GROUP_THREAD_DIM;
   }
 
-  GroupMemoryBarrierWithGroupSync();
+  groupMemoryBarrier();
 
-  int2 cachedCoord = threadIdx.xy + int2(0, AOFX_BLUR_RADIUS) ;
+  ivec2 cachedCoord = threadIdx.xy + ivec2(0, AOFX_BLUR_RADIUS) ;
 
   if ( (dispatchIdx.x < g_cbInputData.m_OutputSize.x) && (dispatchIdx.y < g_cbInputData.m_OutputSize.y) )
   {
-    float aoFiltered = kernelBilateralBlurVertical(float2(0,0), cachedCoord);
+    float aoFiltered = kernelBilateralBlurVertical(vec2(0,0), cachedCoord);
     g_t2dOutput[dispatchIdx.xy] = aoFiltered;
   }
 }
@@ -249,27 +247,27 @@ void csBilateralBlurHorizontal(uint3 groupIdx    : SV_GroupID,
                                uint  threadIndex : SV_GroupIndex,
                                uint3 dispatchIdx : SV_DispatchThreadID )
 {
-  float2 screenCoord, screenCoord_left, screenCoord_right;
-  int2 cacheCoord, cacheCoord_left, cacheCoord_right;
+  vec2 screenCoord, screenCoord_left, screenCoord_right;
+  ivec2 cacheCoord, cacheCoord_left, cacheCoord_right;
   AO_Depth aoDepth;
 
-  float2 baseCoord = dispatchIdx.xy + float2(0.5f, 0.5f);
+  vec2 baseCoord = dispatchIdx.xy + vec2(0.5f, 0.5f);
 
   int cacheOffset = 0;
 
   for (int baseOffset = -AOFX_BLUR_RADIUS; baseOffset <= AOFX_BLUR_RADIUS + AO_BLUR_GROUP_THREAD_DIM; baseOffset += AO_BLUR_GROUP_THREAD_DIM)
   {
-    screenCoord = baseCoord + float2(baseOffset, 0);
+    screenCoord = baseCoord + vec2(baseOffset, 0);
     aoDepth = loadDepthAndAmbientOcclusion(screenCoord * g_cbInputData.m_OutputSizeRcp);
-    storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + int2(cacheOffset, 0));
+    storeDepthAndAmbientOcclusionInCache(aoDepth, threadIdx.xy + ivec2(cacheOffset, 0));
 
     cacheOffset += AO_BLUR_GROUP_THREAD_DIM;
   }
 
-  GroupMemoryBarrierWithGroupSync();
+  groupMemoryBarrier();
 
-  int2 cachedCoord = threadIdx.xy + int2(AOFX_BLUR_RADIUS, 0) ;
-  float aoFiltered = kernelBilateralBlurHorizontal(float2(0,0), cachedCoord);
+  ivec2 cachedCoord = threadIdx.xy + ivec2(AOFX_BLUR_RADIUS, 0) ;
+  float aoFiltered = kernelBilateralBlurHorizontal(vec2(0,0), cachedCoord);
 
   if ( (dispatchIdx.x < g_cbInputData.m_OutputSize.x) && (dispatchIdx.y < g_cbInputData.m_OutputSize.y) )
   {
@@ -360,7 +358,7 @@ Texture2D                                        g_t2dDilateAO2                 
 
 struct                                           DilateData
 {
-  float4                                         m_MultiResolutionAOFactor;
+  vec4                                         m_MultiResolutionAOFactor;
 };
 
 cbuffer                                          CB_DILATE_Data : register( b0 )
@@ -368,9 +366,9 @@ cbuffer                                          CB_DILATE_Data : register( b0 )
     DilateData                                   g_DilateData;
 }
 
-float4 psDilate( PS_FullscreenInput In ) : SV_Target0
+vec4 psDilate( PS_FullscreenInput In ) : SV_Target0
 {
-    float3 ao = float3(1, 1, 1);
+    vec3 ao = float3(1, 1, 1);
 #if (AO_LAYER_MASK & 1) != 0
     ao.x = pow(g_t2dDilateAO0.SampleLevel( g_ssPointClamp, In.texCoord, 0 ).x, g_DilateData.m_MultiResolutionAOFactor.x);
 #endif
@@ -391,11 +389,11 @@ float4 psDilate( PS_FullscreenInput In ) : SV_Target0
 //=================================================================================================================================
 Texture2D                                        g_t2dOutputRed                : register( t0 );
 
-float4 psOutputRed( PS_FullscreenInput In ) : SV_Target
+vec4 psOutputRed( PS_FullscreenInput In ) : SV_Target
 {
     float red = g_t2dOutputRed.Sample( g_ssLinearClamp, In.texCoord, 0 ).r;
 
-    return float4(red, red, red, red);
+    return vec4(red, red, red, red);
 }
 
 #endif // (AOFX_IMPLEMENTATION == AOFX_IMPLEMENTATION_CS)
