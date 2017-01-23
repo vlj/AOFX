@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#version 450
 #ifndef AMD_AOFX_COMMON_HLSL
 #define AMD_AOFX_COMMON_HLSL
 
@@ -159,14 +159,14 @@ layout(set = 1, binding = 7) uniform texture2D   g_t2dInput;
 layout(set = 1, binding = 8) uniform texture2DArray g_t2daInput;
 #endif
 
-cbuffer                                          CB_AO_DATA                    : register( b0 )
+layout(set = 2, binding = 9, std140) uniform     CB_AO_DATA
 {
   AO_Data                                        g_cbAO;
 };
 
-cbuffer                                          CB_SAMPLE_PATTERN             : register( b1 )
+layout(set = 2, binding = 10, std140) uniform    CB_SAMPLE_PATTERN
 {
-  int4                                           g_cbSamplePattern[64][32];
+  ivec4                                           g_cbSamplePattern[64][32];
 };
 
 #if defined( ULTRA_SAMPLES )
@@ -225,10 +225,10 @@ const ivec2                                g_SamplePattern[NUM_VALLEYS] =
 
 uint normalToUint16(vec3 unitNormal, out int zSign)
 {
-  zSign = sign(unitNormal.z);
+  zSign = int(sign(unitNormal.z));
 
-  int x = (unitNormal.x * 0.5 + 0.5) * 255.0f;
-  int y = (unitNormal.y * 0.5 + 0.5) * 255.0f;
+  int x = int((unitNormal.x * 0.5 + 0.5) * 255.0f);
+  int y = int((unitNormal.y * 0.5 + 0.5) * 255.0f);
 
   int result = (x & 0x000000FF) | ((y & 0x000000FF) << 8);
 
@@ -239,8 +239,8 @@ vec3 uint16ToNormal(uint normal, int zSign)
 {
   vec3 result;
 
-  int x = (normal & 0x000000FF);
-  int y = (normal & 0x0000FF00) >> 8;
+  int x = int(normal & 0x000000FF);
+  int y = int((normal & 0x0000FF00) >> 8);
 
   result.x = ((x / 255.0f) - 0.5f) * 2.0f;
   result.y = ((y / 255.0f) - 0.5f) * 2.0f;
@@ -248,6 +248,16 @@ vec3 uint16ToNormal(uint normal, int zSign)
   result.z = zSign * sqrt(1 - result.x * result.x - result.y * result.y);
 
   return result;
+}
+
+uint f32tof16(float v)
+{
+  return floatBitsToUint(unpackHalf2x16(floatBitsToUint(v)).x);
+}
+
+float f16tof32(uint v)
+{
+  return  packHalf2x16(vec2(v)) & 0xFFFF;
 }
 
 uint depthToUint16(float linearDepth)
@@ -297,7 +307,7 @@ vec3 loadCameraSpacePositionT2D( vec2 screenCoord, ivec2 layerIdx )
   AO_INPUT_TYPE aoInput = g_t2dInput.SampleLevel(g_ssPointClamp, screenCoord.xy * g_cbAO.m_OutputSizeRcp, 0.0f);
 #else //  (AO_DEINTERLEAVE_FACTOR == 1)
   int layer = layerIdx.x + MUL_AO_DEINTERLEAVE_FACTOR(layerIdx.y);
-  AO_INPUT_TYPE aoInput = g_t2daInput.SampleLevel(g_ssPointClamp, vec3((screenCoord.xy + vec2(0.5, 0.5)) * g_cbAO.m_OutputSizeRcp, layer), 0.0f);
+  AO_INPUT_TYPE aoInput = textureLod(sampler2DArray(g_t2daInput, g_ssPointClamp), vec3((screenCoord.xy + vec2(0.5, 0.5)) * g_cbAO.m_OutputSizeRcp, layer), 0.0f).x;
 #endif //  (AO_DEINTERLEAVE_FACTOR == 1)
 
 #if (AOFX_NORMAL_OPTION == AOFX_NORMAL_OPTION_NONE)
@@ -324,10 +334,10 @@ vec3 loadCameraSpacePositionT2D( vec2 screenCoord, ivec2 layerIdx )
   return position;
 }
 
-float loadCameraSpaceDepthT2D( float2 uv, float cameraQ, float cameraZNearXQ )
+float loadCameraSpaceDepthT2D( vec2 uv, float cameraQ, float cameraZNearXQ )
 {
 
-  float depth = g_t2dDepth.SampleLevel(g_ssPointClamp, uv, 0.0f);
+  float depth = textureLod(sampler2D(g_t2dDepth, g_ssPointClamp), uv, 0.0f).x;
 
   float camera_z = -cameraZNearXQ / ( depth - cameraQ );
 
