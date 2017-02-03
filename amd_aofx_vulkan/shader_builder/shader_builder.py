@@ -46,10 +46,9 @@ def load_array(name, filename):
 
 output = open("..\src\AMD_AOFX_Precompiled.h", 'w')
 output.write("#include <vector>\n")
-#output.write(load_array("hair_shadow_vertex", "AMD_AOFX.glsl"))
-output.write(load_array("hair_shadow_fragment", "AMD_AOFX_Common.glsl"))
-#output.write(load_array("render_hair_vertex", "AMD_AOFX_Deinterleave.comp"))
-#output.write(load_array("render_hair_aa_vertex", "AMD_AOFX_Kernel.glsl"))
+output.write(load_array("hair_shadow_vertex", "AMD_AOFX.glsl"))
+#output.write(load_array("hair_shadow_fragment", "AMD_AOFX_Common.glsl"))
+#output.write(load_array("render_hair_vertex", "AMD_AOFX_Kernel.glsl"))
 #output.write(load_array("render_hair_strand_copies_vertex", "AMD_Deinterleave.glsl"))
 #output.write(load_array("render_hair_aa_strand_copies_vertex", "AMD_Utility.glsl"))
 #output.write(load_array("pass1_fragment", "BilateralFilter.glsl"))
