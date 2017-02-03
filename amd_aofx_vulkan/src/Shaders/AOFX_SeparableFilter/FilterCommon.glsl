@@ -26,7 +26,6 @@
 // Common defines for separable filtering kernels
 //--------------------------------------------------------------------------------------
 
-
 // Defines passed in at compile time
 //#define LDS_PRECISION               ( 8 , 16, or 32 )
 //#define USE_APPROXIMATE_FILTER      ( 0, 1 )
@@ -47,8 +46,8 @@
 
 
 // The samplers
-SamplerState g_PointSampler : register (s0);
-SamplerState g_LinearClampSampler : register (s1);
+uniform sampler g_PointSampler;
+uniform sampler g_LinearClampSampler;
 
 
 // Adjusts the sampling step size if using approximate filtering
@@ -64,17 +63,17 @@ SamplerState g_LinearClampSampler : register (s1);
 
 
 // Constant buffer used by the CS & PS
-cbuffer cbSF : register( b0 )
+uniform cbSF
 {
-    float4    g_m_OutputSize;   // x = Width, y = Height, z = Inv Width, w = Inv Height
+    vec4    g_m_OutputSize;   // x = Width, y = Height, z = Inv Width, w = Inv Height
 }
 
 
 // Input structure used by the PS
 struct PS_RenderQuadInput
 {
-    float4 f4Position : SV_POSITION;
-    float2 f2TexCoord : TEXCOORD0;
+//    vec4 f4Position : SV_POSITION;
+//    vec2 f2TexCoord : TEXCOORD0;
 };
 
 #if ( REQUIRE_HDR == 1 )
@@ -91,9 +90,9 @@ struct PS_RenderQuadInput
     //--------------------------------------------------------------------------------------
     // Unpacks a uint to a float2
     //--------------------------------------------------------------------------------------
-    float2 uintToFloat2( uint uValue )
+    vec2 uintToFloat2( uint uValue )
     {
-        return float2( f16tof32( uValue ), f16tof32( uValue >> 16 ) );
+        return vec2( f16tof32( uValue ), f16tof32( uValue >> 16 ) );
     }
 
 #else
@@ -101,7 +100,7 @@ struct PS_RenderQuadInput
     //--------------------------------------------------------------------------------------
     // Packs a float2 to a unit
     //--------------------------------------------------------------------------------------
-    uint float2ToUint32( float2 f2Value )
+    uint float2ToUint32( vec2 f2Value )
     {
         return ( ( ( (uint)( f2Value.y * 65535.0f ) ) << 16 ) |
                  ( (uint)( f2Value.x * 65535.0f ) ) );
@@ -111,9 +110,9 @@ struct PS_RenderQuadInput
     //--------------------------------------------------------------------------------------
     // Unpacks a uint to a float2
     //--------------------------------------------------------------------------------------
-    float2 uintToFloat2( uint uValue )
+    vec2 uintToFloat2( uint uValue )
     {
-        return float2(  ( uValue & 0x0000FFFF ) / 65535.0f,
+        return vec2(  ( uValue & 0x0000FFFF ) / 65535.0f,
                       ( ( uValue & 0xFFFF0000 ) >> 16 ) / 65535.0f );
     }
 
@@ -122,7 +121,7 @@ struct PS_RenderQuadInput
 //--------------------------------------------------------------------------------------
 // Packs a float4 to a unit
 //--------------------------------------------------------------------------------------
-uint Float4ToUint( float4 f4Value )
+uint Float4ToUint( vec4 f4Value )
 {
     return (    ( ( (uint)( f4Value.w * 255.0f ) ) << 24 ) |
                 ( ( (uint)( f4Value.z * 255.0f ) ) << 16 ) |
@@ -134,9 +133,9 @@ uint Float4ToUint( float4 f4Value )
 //--------------------------------------------------------------------------------------
 // Unpacks a uint to a float4
 //--------------------------------------------------------------------------------------
-float4 UintToFloat4( uint uValue )
+vec4 UintToFloat4( uint uValue )
 {
-    return float4(  ( uValue & 0x000000FF ) / 255.0f,
+    return vec4(  ( uValue & 0x000000FF ) / 255.0f,
                     ( ( uValue & 0x0000FF00 ) >> 8 ) / 255.0f,
                     ( ( uValue & 0x00FF0000 ) >> 16 ) / 255.0f,
                     ( ( uValue & 0xFF000000 ) >> 24 ) / 255.0f );
@@ -146,7 +145,7 @@ float4 UintToFloat4( uint uValue )
 //--------------------------------------------------------------------------------------
 // Packs a float3 to a unit
 //--------------------------------------------------------------------------------------
-uint Float3ToUint( float3 f3Value )
+uint Float3ToUint( vec3 f3Value )
 {
     return (    ( ( (uint)( f3Value.z * 255.0f ) ) << 16 ) |
                 ( ( (uint)( f3Value.y * 255.0f ) ) << 8 ) |
@@ -157,9 +156,9 @@ uint Float3ToUint( float3 f3Value )
 //--------------------------------------------------------------------------------------
 // Unpacks a uint to a float3
 //--------------------------------------------------------------------------------------
-float3 UintToFloat3( uint uValue )
+vec3 UintToFloat3( uint uValue )
 {
-    return float3(  ( uValue & 0x000000FF ) / 255.0f,
+    return vec3(  ( uValue & 0x000000FF ) / 255.0f,
                     ( ( uValue & 0x0000FF00 ) >> 8 ) / 255.0f,
                     ( ( uValue & 0x00FF0000 ) >> 16 ) / 255.0f );
 }

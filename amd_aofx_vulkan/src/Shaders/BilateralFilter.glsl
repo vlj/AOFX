@@ -20,22 +20,22 @@
 // THE SOFTWARE.
 //
 
-
-#include "AOFX_SeparableFilter\\FilterCommon.hlsl"
+#version 450
+#include "AOFX_SeparableFilter\\FilterCommon.glsl"
 
 #define PI                      ( 3.1415927f )
 #define GAUSSIAN_DEVIATION      ( KERNEL_RADIUS * 0.5f )
 
 // The input textures
-Texture2D g_txDepth             : register( t0 );
-Texture2D g_txAO                : register( t2 );
+uniform texture2D g_txDepth;
+uniform texture2D g_txAO;
 
 struct AO_InputData
 {
-  uint2                         m_OutputSize;
-  float2                        m_OutputSizeRcp;
-  uint2                         m_InputSize;                 // size (xy), inv size (zw)
-  float2                        m_InputSizeRcp;              // size (xy), inv size (zw)
+  uvec2                         m_OutputSize;
+  vec2                          m_OutputSizeRcp;
+  uvec2                         m_InputSize;                 // size (xy), inv size (zw)
+  vec2                          m_InputSizeRcp;              // size (xy), inv size (zw)
 
   float                         m_ZFar;
   float                         m_ZNear;
@@ -54,7 +54,7 @@ struct AO_InputData
 };
 
 // Constant buffer used by both the CS & PS
-cbuffer cbBilateralDilate       : register( b0 )
+uniform cbBilateralDilate 
 {
   AO_InputData                  g_aoInputData;
 };
@@ -63,12 +63,12 @@ cbuffer cbBilateralDilate       : register( b0 )
 //--------------------------------------------------------------------------------------
 // Hard coded AO params
 //--------------------------------------------------------------------------------------
-static float g_fAORejectRadius        = 0.8f;      // Camera Z values must fall within the reject and accept radius to be
-static float g_fDepthFallOff          = g_fAORejectRadius / 7.0f; // Used by the bilateral filter to stop bleeding over steps in depth
+const float g_fAORejectRadius        = 0.8f;      // Camera Z values must fall within the reject and accept radius to be
+const float g_fDepthFallOff          = g_fAORejectRadius / 7.0f; // Used by the bilateral filter to stop bleeding over steps in depth
 
 
 // The output UAV used by the CS
-RWTexture2D<float4> g_uavOutput : register( u0 );
+layout(rgba32f)  g_uavOutput;
 
 // CS output structure
 struct CS_Output
@@ -112,10 +112,10 @@ struct LDS_Layout
     float  fDepth;
 };
 
-groupshared struct
+shared struct
 {
     LDS_Layout Item[RUN_LINES][RUN_SIZE_PLUS_KERNEL];
-}g_LDS;
+} g_LDS;
 
 #define WRITE_TO_LDS( _RAWDataItem, _iLineOffset, _iPixelOffset ) \
     g_LDS.Item[_iLineOffset][_iPixelOffset].fAO = _RAWDataItem.fAO; \
@@ -132,7 +132,7 @@ struct LDS_Layout
     uint   uBoth;
 };
 
-groupshared struct
+shared struct
 {
     LDS_Layout Item[RUN_LINES][RUN_SIZE_PLUS_KERNEL];
 }g_LDS;
@@ -141,7 +141,7 @@ groupshared struct
     g_LDS.Item[_iLineOffset][_iPixelOffset].uBoth = float2ToUint32( float2( _RAWDataItem.fAO, _RAWDataItem.fDepth ) );
 
 #define READ_FROM_LDS( _iLineOffset, _iPixelOffset, _RAWDataItem ) \
-    float2 f2A = uintToFloat2( g_LDS.Item[_iLineOffset][_iPixelOffset].uBoth ); \
+    vec2 f2A = uintToFloat2( g_LDS.Item[_iLineOffset][_iPixelOffset].uBoth ); \
     _RAWDataItem.fAO = f2A.x; \
     _RAWDataItem.fDepth = f2A.y;
 
@@ -162,8 +162,8 @@ groupshared struct
 // Sample from chosen input(s)
 //--------------------------------------------------------------------------------------
 #define SAMPLE_FROM_INPUT( _Sampler, _f2SamplePosition, _RAWDataItem ) \
-    _RAWDataItem.fAO = g_txAO.SampleLevel( _Sampler, _f2SamplePosition, 0 ).x; \
-    _RAWDataItem.fDepth = g_txDepth.SampleLevel( _Sampler, _f2SamplePosition, 0 ).x; \
+    _RAWDataItem.fAO = textuteLod(sampler2D(g_txAO, _Sampler), _f2SamplePosition, 0).x; \
+    _RAWDataItem.fDepth = textureLod(sampler2D(g_txDepth,  _Sampler), _f2SamplePosition, 0 ).x; \
     _RAWDataItem.fDepth = -g_aoInputData.m_CameraQTimesZNear / ( _RAWDataItem.fDepth - g_aoInputData.m_CameraQ );
 
 
@@ -171,7 +171,7 @@ groupshared struct
 // Compute what happens at the kernels center
 //--------------------------------------------------------------------------------------
 #define KERNEL_CENTER( _KernelData, _iPixel, _iNumPixels, _O, _RAWDataItem ) \
-    [unroll] for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
+    for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
     _KernelData[_iPixel].fCenterAO = _RAWDataItem[_iPixel].fAO; \
     _KernelData[_iPixel].fCenterDepth = _RAWDataItem[_iPixel].fDepth; \
     GAUSSIAN_WEIGHT( 0, GAUSSIAN_DEVIATION, _KernelData[_iPixel].fWeight ) \
@@ -183,7 +183,7 @@ groupshared struct
 // Compute what happens for each iteration of the kernel
 //--------------------------------------------------------------------------------------
 #define KERNEL_ITERATION( _iIteration, _KernelData, _iPixel, _iNumPixels, _O, _RAWDataItem ) \
-    [unroll] for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
+    for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
     GAUSSIAN_WEIGHT( ( _iIteration - KERNEL_RADIUS + ( 1.0f - 1.0f / float( STEP_SIZE ) ) ), GAUSSIAN_DEVIATION, _KernelData[_iPixel].fWeight ) \
     _KernelData[_iPixel].fWeight *= ( abs( _RAWDataItem[_iPixel].fDepth - _KernelData[_iPixel].fCenterDepth ) < g_aoInputData.m_DepthUpsampleThreshold ); \
     _O.fColor[_iPixel] += _RAWDataItem[_iPixel].fAO * _KernelData[_iPixel].fWeight; \
@@ -194,7 +194,7 @@ groupshared struct
 // Perform final weighting operation
 //--------------------------------------------------------------------------------------
 #define KERNEL_FINAL_WEIGHT( _KernelData, _iPixel, _iNumPixels, _O ) \
-    [unroll] for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
+    for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
     _O.fColor[_iPixel] = ( _KernelData[_iPixel].fWeightSum > 0.00001f ) ? ( _O.fColor[_iPixel] / _KernelData[_iPixel].fWeightSum ) : ( _KernelData[_iPixel].fCenterAO ); }
 
 
@@ -202,7 +202,7 @@ groupshared struct
 // Output to chosen UAV
 //--------------------------------------------------------------------------------------
 #define KERNEL_OUTPUT( _i2Center, _i2Inc, _iPixel, _iNumPixels, _O, _KernelData ) \
-    [unroll] for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) \
+    for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) \
     g_uavOutput[_i2Center + _iPixel * _i2Inc] = _O.fColor[_iPixel];
 
 
