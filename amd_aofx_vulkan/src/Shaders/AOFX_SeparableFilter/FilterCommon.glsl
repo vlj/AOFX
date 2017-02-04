@@ -66,15 +66,25 @@ uniform sampler g_LinearClampSampler;
 uniform cbSF
 {
     vec4    g_m_OutputSize;   // x = Width, y = Height, z = Inv Width, w = Inv Height
-}
+};
 
 
 // Input structure used by the PS
-struct PS_RenderQuadInput
-{
+//struct PS_RenderQuadInput
+//{
 //    vec4 f4Position : SV_POSITION;
 //    vec2 f2TexCoord : TEXCOORD0;
-};
+//};
+
+uint f32tof16(float v)
+{
+  return floatBitsToUint(unpackHalf2x16(floatBitsToUint(v)).x);
+}
+
+float f16tof32(uint v)
+{
+  return  packHalf2x16(vec2(v)) & 0xFFFF;
+}
 
 #if ( REQUIRE_HDR == 1 )
 
@@ -102,8 +112,8 @@ struct PS_RenderQuadInput
     //--------------------------------------------------------------------------------------
     uint float2ToUint32( vec2 f2Value )
     {
-        return ( ( ( (uint)( f2Value.y * 65535.0f ) ) << 16 ) |
-                 ( (uint)( f2Value.x * 65535.0f ) ) );
+        return ( ( ( uint( f2Value.y * 65535.0f ) ) << 16 ) |
+                 ( uint( f2Value.x * 65535.0f ) ) );
     }
 
 
@@ -123,10 +133,10 @@ struct PS_RenderQuadInput
 //--------------------------------------------------------------------------------------
 uint Float4ToUint( vec4 f4Value )
 {
-    return (    ( ( (uint)( f4Value.w * 255.0f ) ) << 24 ) |
-                ( ( (uint)( f4Value.z * 255.0f ) ) << 16 ) |
-                ( ( (uint)( f4Value.y * 255.0f ) ) << 8 ) |
-                ( (uint)( f4Value.x * 255.0f ) ) );
+    return (    ( ( uint( f4Value.w * 255.0f ) ) << 24 ) |
+                ( ( uint( f4Value.z * 255.0f ) ) << 16 ) |
+                ( ( uint( f4Value.y * 255.0f ) ) << 8 ) |
+                ( uint( f4Value.x * 255.0f ) ) );
 }
 
 
@@ -147,9 +157,9 @@ vec4 UintToFloat4( uint uValue )
 //--------------------------------------------------------------------------------------
 uint Float3ToUint( vec3 f3Value )
 {
-    return (    ( ( (uint)( f3Value.z * 255.0f ) ) << 16 ) |
-                ( ( (uint)( f3Value.y * 255.0f ) ) << 8 ) |
-                ( (uint)( f3Value.x * 255.0f ) ) );
+    return (    ( ( uint( f3Value.z * 255.0f ) ) << 16 ) |
+                ( ( uint( f3Value.y * 255.0f ) ) << 8 ) |
+                ( uint( f3Value.x * 255.0f ) ) );
 }
 
 

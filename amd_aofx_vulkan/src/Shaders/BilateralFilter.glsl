@@ -68,7 +68,7 @@ const float g_fDepthFallOff          = g_fAORejectRadius / 7.0f; // Used by the 
 
 
 // The output UAV used by the CS
-layout(rgba32f)  g_uavOutput;
+layout(rgba32f) uniform image2D  g_uavOutput;
 
 // CS output structure
 struct CS_Output
@@ -205,13 +205,12 @@ shared struct
     for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) \
     g_uavOutput[_i2Center + _iPixel * _i2Inc] = _O.fColor[_iPixel];
 
-
 //--------------------------------------------------------------------------------------
 // Include the filter kernel logic that uses the above macros
 //--------------------------------------------------------------------------------------
-#include "AOFX_SeparableFilter\\FilterKernel.hlsl"
-#include "AOFX_SeparableFilter\\HorizontalFilter.hlsl"
-#include "AOFX_SeparableFilter\\VerticalFilter.hlsl"
+#include "AOFX_SeparableFilter\\FilterKernel.glsl"
+#include "AOFX_SeparableFilter\\HorizontalFilter.glsl"
+#include "AOFX_SeparableFilter\\VerticalFilter.glsl"
 
 
 //--------------------------------------------------------------------------------------
