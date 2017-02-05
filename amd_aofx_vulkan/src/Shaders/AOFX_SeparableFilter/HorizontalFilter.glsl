@@ -32,45 +32,47 @@
     //--------------------------------------------------------------------------------------
     // Compute shader implementing the horizontal pass of a separable filter
     //--------------------------------------------------------------------------------------
-    [numthreads( NUM_THREADS, RUN_LINES, 1 )]
-    void CS_FilterX( uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID )
+    layout(local_size_x = NUM_THREADS, local_size_y = RUN_LINES) in;
+    void CS_FilterX()
     {
+        uvec3 Gid = gl_WorkGroupID;
+        uvec3 GTid = gl_LocalInvocationID;
         // Sampling and line offsets from group thread IDs
-        int iSampleOffset = GTid.x * SAMPLES_PER_THREAD;
-        int iLineOffset = GTid.y;
+        int iSampleOffset = int(GTid.x * SAMPLES_PER_THREAD);
+        int iLineOffset = int(GTid.y);
 
         // Group and pixel coords from group IDs
-        int2 i2GroupCoord = int2( ( Gid.x * RUN_SIZE ) - KERNEL_RADIUS, ( Gid.y * RUN_LINES ) );
-        int2 i2Coord = int2( i2GroupCoord.x + iSampleOffset, i2GroupCoord.y );
+        ivec2 i2GroupCoord = ivec2( ( Gid.x * RUN_SIZE ) - KERNEL_RADIUS, ( Gid.y * RUN_LINES ) );
+        ivec2 i2Coord = ivec2( i2GroupCoord.x + iSampleOffset, i2GroupCoord.y );
 
         // Sample and store to LDS
-        [unroll]
+        
         for( int i = 0; i < SAMPLES_PER_THREAD; ++i )
         {
-            WRITE_TO_LDS( Sample( i2Coord + int2( i, GTid.y ), float2( 0.5f, 0.0f ) ), iLineOffset, iSampleOffset + i )
+            WRITE_TO_LDS( Sample( i2Coord + ivec2( i, GTid.y ), vec2( 0.5f, 0.0f ) ), iLineOffset, iSampleOffset + i )
         }
 
         // Optionally load some extra texels as required by the exact kernel size
         if( GTid.x < EXTRA_SAMPLES )
         {
-            WRITE_TO_LDS( Sample( i2GroupCoord + int2( RUN_SIZE_PLUS_KERNEL - 1 - GTid.x, GTid.y ), float2( 0.5f, 0.0f ) ), iLineOffset, RUN_SIZE_PLUS_KERNEL - 1 - GTid.x )
+            WRITE_TO_LDS( Sample( i2GroupCoord + ivec2( RUN_SIZE_PLUS_KERNEL - 1 - GTid.x, GTid.y ), vec2( 0.5f, 0.0f ) ), iLineOffset, RUN_SIZE_PLUS_KERNEL - 1 - GTid.x )
         }
 
         // Sync threads
-        GroupMemoryBarrierWithGroupSync();
+        groupMemoryBarrier ();
 
         // Adjust pixel offset for computing at PIXELS_PER_THREAD
-        int iPixelOffset = GTid.x * PIXELS_PER_THREAD;
-        i2Coord = int2( i2GroupCoord.x + iPixelOffset, i2GroupCoord.y );
+        int iPixelOffset = int(GTid.x * PIXELS_PER_THREAD);
+        i2Coord = ivec2( i2GroupCoord.x + iPixelOffset, i2GroupCoord.y );
 
         // Since we start with the first thread position, we need to increment the coord by KERNEL_RADIUS
         i2Coord.x += KERNEL_RADIUS;
 
         // Ensure we don't compute pixels off screen
-        if( i2Coord.x < (int)g_aoInputData.m_OutputSize.x )
+        if( i2Coord.x < int(g_aoInputData.m_OutputSize.x ))
         {
-            int2 i2Center = i2Coord + int2( 0, GTid.y );
-            int2 i2Inc = int2( 1, 0 );
+            ivec2 i2Center = i2Coord + ivec2( 0, GTid.y );
+            ivec2 i2Inc = ivec2( 1, 0 );
 
             // Compute the filter kernel using LDS values
             ComputeFilterKernel( iPixelOffset, iLineOffset, i2Center, i2Inc );
@@ -82,16 +84,16 @@
     //--------------------------------------------------------------------------------------
     // Pixel shader implementing the horizontal pass of a separable filter
     //--------------------------------------------------------------------------------------
-    PS_Output PS_FilterX( PS_RenderQuadInput I ) : SV_TARGET
+    PS_Output PS_FilterX( PS_RenderQuadInput I )
     {
-        PS_Output O = (PS_Output)0;
+        PS_Output O;// = (PS_Output)0;
         RAWDataItem RDI[1];
         int iPixel, iIteration;
         KernelData KD[1];
 
         // Load the center sample(s)
-        int2 i2KernelCenter = int2( g_aoInputData.m_OutputSize * I.f2TexCoord );
-        RDI[0] = Sample( int2( i2KernelCenter.x, i2KernelCenter.y ), float2( 0.0f, 0.0f ) );
+        ivec2 i2KernelCenter = ivec2( g_aoInputData.m_OutputSize * I.f2TexCoord );
+        RDI[0] = Sample( ivec2( i2KernelCenter.x, i2KernelCenter.y ), vec2( 0.0f, 0.0f ) );
 
         // Macro defines what happens at the kernel center
         KERNEL_CENTER( KD, iPixel, 1, O, RDI )
@@ -99,22 +101,22 @@
         i2KernelCenter.x -= KERNEL_RADIUS;
 
         // First half of the kernel
-        [unroll]
+        
         for( iIteration = 0; iIteration < KERNEL_RADIUS; iIteration += STEP_SIZE )
         {
             // Load the sample(s) for this iteration
-            RDI[0] = Sample( int2( i2KernelCenter.x + iIteration, i2KernelCenter.y ), float2( 0.5f, 0.0f ) );
+            RDI[0] = Sample( ivec2( i2KernelCenter.x + iIteration, i2KernelCenter.y ), vec2( 0.5f, 0.0f ) );
 
             // Macro defines what happens for each kernel iteration
             KERNEL_ITERATION( iIteration, KD, iPixel, 1, O, RDI )
         }
 
         // Second half of the kernel
-        [unroll]
+        
         for( iIteration = KERNEL_RADIUS + 1; iIteration < KERNEL_DIAMETER; iIteration += STEP_SIZE )
         {
             // Load the sample(s) for this iteration
-            RDI[0] = Sample( int2( i2KernelCenter.x + iIteration, i2KernelCenter.y ), float2( 0.5f, 0.0f ) );
+            RDI[0] = Sample( ivec2( i2KernelCenter.x + iIteration, i2KernelCenter.y ), vec2( 0.5f, 0.0f ) );
 
             // Macro defines what happens for each kernel iteration
             KERNEL_ITERATION( iIteration, KD, iPixel, 1, O, RDI )

@@ -162,7 +162,7 @@ shared struct
 // Sample from chosen input(s)
 //--------------------------------------------------------------------------------------
 #define SAMPLE_FROM_INPUT( _Sampler, _f2SamplePosition, _RAWDataItem ) \
-    _RAWDataItem.fAO = textuteLod(sampler2D(g_txAO, _Sampler), _f2SamplePosition, 0).x; \
+    _RAWDataItem.fAO = textureLod(sampler2D(g_txAO, _Sampler), _f2SamplePosition, 0).x; \
     _RAWDataItem.fDepth = textureLod(sampler2D(g_txDepth,  _Sampler), _f2SamplePosition, 0 ).x; \
     _RAWDataItem.fDepth = -g_aoInputData.m_CameraQTimesZNear / ( _RAWDataItem.fDepth - g_aoInputData.m_CameraQ );
 
@@ -185,7 +185,7 @@ shared struct
 #define KERNEL_ITERATION( _iIteration, _KernelData, _iPixel, _iNumPixels, _O, _RAWDataItem ) \
     for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) { \
     GAUSSIAN_WEIGHT( ( _iIteration - KERNEL_RADIUS + ( 1.0f - 1.0f / float( STEP_SIZE ) ) ), GAUSSIAN_DEVIATION, _KernelData[_iPixel].fWeight ) \
-    _KernelData[_iPixel].fWeight *= ( abs( _RAWDataItem[_iPixel].fDepth - _KernelData[_iPixel].fCenterDepth ) < g_aoInputData.m_DepthUpsampleThreshold ); \
+    _KernelData[_iPixel].fWeight *= float( abs( _RAWDataItem[_iPixel].fDepth - _KernelData[_iPixel].fCenterDepth ) < g_aoInputData.m_DepthUpsampleThreshold ); \
     _O.fColor[_iPixel] += _RAWDataItem[_iPixel].fAO * _KernelData[_iPixel].fWeight; \
     _KernelData[_iPixel].fWeightSum += _KernelData[_iPixel].fWeight; }
 
@@ -203,7 +203,7 @@ shared struct
 //--------------------------------------------------------------------------------------
 #define KERNEL_OUTPUT( _i2Center, _i2Inc, _iPixel, _iNumPixels, _O, _KernelData ) \
     for( _iPixel = 0; _iPixel < _iNumPixels; ++_iPixel ) \
-    g_uavOutput[_i2Center + _iPixel * _i2Inc] = _O.fColor[_iPixel];
+    imageStore(g_uavOutput, ivec2(_i2Center + _iPixel * _i2Inc), vec4(_O.fColor[_iPixel]));
 
 //--------------------------------------------------------------------------------------
 // Include the filter kernel logic that uses the above macros

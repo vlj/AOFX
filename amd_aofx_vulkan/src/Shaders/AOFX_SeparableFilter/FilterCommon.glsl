@@ -27,10 +27,10 @@
 //--------------------------------------------------------------------------------------
 
 // Defines passed in at compile time
-//#define LDS_PRECISION               ( 8 , 16, or 32 )
+#define LDS_PRECISION               (32)
 //#define USE_APPROXIMATE_FILTER      ( 0, 1 )
-//#define USE_COMPUTE_SHADER
-//#define KERNEL_RADIUS               ( 16 )   // Must be an even number
+#define USE_COMPUTE_SHADER          1
+#define KERNEL_RADIUS               ( 16 )   // Must be an even number
 
 
 // Defines that control the CS logic of the kernel
@@ -70,11 +70,11 @@ uniform cbSF
 
 
 // Input structure used by the PS
-//struct PS_RenderQuadInput
-//{
-//    vec4 f4Position : SV_POSITION;
-//    vec2 f2TexCoord : TEXCOORD0;
-//};
+struct PS_RenderQuadInput
+{
+    vec4 f4Position;// : SV_POSITION;
+    vec2 f2TexCoord;// : TEXCOORD0;
+};
 
 uint f32tof16(float v)
 {

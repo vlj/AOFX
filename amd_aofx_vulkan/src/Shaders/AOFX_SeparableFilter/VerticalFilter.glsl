@@ -35,45 +35,47 @@
     //--------------------------------------------------------------------------------------
     // Compute shader implementing the vertical pass of a separable filter
     //--------------------------------------------------------------------------------------
-    [numthreads( NUM_THREADS, RUN_LINES, 1 )]
-    void CS_FilterY( uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID )
+    layout(local_size_x = NUM_THREADS, local_size_y = RUN_LINES) in;
+    void CS_FilterY()
     {
+        uvec3 Gid = gl_WorkGroupID;
+        uvec3 GTid = gl_LocalInvocationID ;
         // Sampling and line offsets from group thread IDs
-        int iSampleOffset = GTid.x * SAMPLES_PER_THREAD;
-        int iLineOffset = GTid.y;
+        int iSampleOffset = int(GTid.x * SAMPLES_PER_THREAD);
+        int iLineOffset = int(GTid.y);
 
         // Group and pixel coords from group IDs
-        int2 i2GroupCoord = int2( ( Gid.x * RUN_LINES ), ( Gid.y * RUN_SIZE ) - KERNEL_RADIUS );
-        int2 i2Coord = int2( i2GroupCoord.x, i2GroupCoord.y + iSampleOffset );
+        ivec2 i2GroupCoord = ivec2( ( Gid.x * RUN_LINES ), ( Gid.y * RUN_SIZE ) - KERNEL_RADIUS );
+        ivec2 i2Coord = ivec2( i2GroupCoord.x, i2GroupCoord.y + iSampleOffset );
 
         // Sample and store to LDS
-        [unroll]
+        
         for( int i = 0; i < SAMPLES_PER_THREAD; ++i )
         {
-            WRITE_TO_LDS( Sample( i2Coord + int2( GTid.y, i ), float2( 0.0f, 0.5f ) ), iLineOffset, iSampleOffset + i )
+           // WRITE_TO_LDS( Sample( i2Coord + ivec2( GTid.y, i ), vec2( 0.0f, 0.5f ) ), iLineOffset, iSampleOffset + i )
         }
 
         // Optionally load some extra texels as required by the exact kernel size
         if( GTid.x < EXTRA_SAMPLES )
         {
-            WRITE_TO_LDS( Sample( i2GroupCoord + int2( GTid.y, RUN_SIZE_PLUS_KERNEL - 1 - GTid.x ), float2( 0.0f, 0.5f ) ), iLineOffset, RUN_SIZE_PLUS_KERNEL - 1 - GTid.x )
+            //WRITE_TO_LDS( Sample( i2GroupCoord + ivec2( GTid.y, RUN_SIZE_PLUS_KERNEL - 1 - GTid.x ), vec2( 0.0f, 0.5f ) ), iLineOffset, RUN_SIZE_PLUS_KERNEL - 1 - GTid.x )
         }
 
         // Sync threads
-        GroupMemoryBarrierWithGroupSync();
+        groupMemoryBarrier();
 
         // Adjust pixel offset for computing at PIXELS_PER_THREAD
-        int iPixelOffset = GTid.x * PIXELS_PER_THREAD;
-        i2Coord = int2( i2GroupCoord.x, i2GroupCoord.y + iPixelOffset );
+        int iPixelOffset = int(GTid.x * PIXELS_PER_THREAD);
+        i2Coord = ivec2( i2GroupCoord.x, i2GroupCoord.y + iPixelOffset );
 
         // Since we start with the first thread position, we need to increment the coord by KERNEL_RADIUS
         i2Coord.y += KERNEL_RADIUS;
 
         // Ensure we don't compute pixels off screen
-        if( i2Coord.y < (int)g_aoInputData.m_OutputSize.y  )
+        if( i2Coord.y < int(g_aoInputData.m_OutputSize.y)  )
         {
-            int2 i2Center = i2Coord + int2( GTid.y, 0 );
-            int2 i2Inc = int2( 0, 1 );
+            ivec2 i2Center = i2Coord + ivec2( GTid.y, 0 );
+            ivec2 i2Inc = ivec2( 0, 1 );
 
             // Compute the filter kernel using LDS values
             ComputeFilterKernel( iPixelOffset, iLineOffset, i2Center, i2Inc );
